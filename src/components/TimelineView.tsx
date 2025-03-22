@@ -10,8 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, Clock, Users, AlertTriangle } from "lucide-react";
+import { format, isAfter, isBefore, isToday, set } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Popover,
@@ -41,6 +42,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const [capacityFilter, setCapacityFilter] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [timeSlotDuration, setTimeSlotDuration] = useState<number>(30); // Minutes - controlled by zoom slider
+  const [attendees, setAttendees] = useState<number>(2);
+  const [selectedTimeRange, setSelectedTimeRange] = useState<{start: string, end: string} | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
   
   // Equipment filter as a multi-select
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
@@ -75,9 +79,28 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   
   // Time slots based on zoom level
   const timeSlots = generateTimeSlots();
+
+  // Handle time range selection
+  const handleTimeRangeSelect = (startTime: string, endTime: string) => {
+    setSelectedTimeRange({ start: startTime, end: endTime });
+    // Check if outside office hours (before 8am or after 6pm)
+    const [startHour] = startTime.split(':').map(Number);
+    const [endHour] = endTime.split(':').map(Number);
+
+    if (startHour < 8 || endHour > 18) {
+      setWarningMessage("This time is outside regular office hours (8:00 AM - 6:00 PM). After-hours access may be required.");
+    } else {
+      setWarningMessage(null);
+    }
+  };
   
   // Filter rooms based on capacity, equipment, and search
   const filteredRooms = rooms.filter(room => {
+    // First, enforce a capacity match based on attendees
+    if (attendees > room.capacity) {
+      return false;
+    }
+
     // Filter by capacity
     const matchesCapacity = capacityFilter && capacityFilter !== "any-capacity"
       ? room.capacity >= parseInt(capacityFilter) 
@@ -201,6 +224,25 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
     }
     
     if (allSlotsAvailable) {
+      // Check if room capacity matches the number of attendees
+      const room = rooms.find(r => r.id === roomId);
+      if (room && attendees > room.capacity) {
+        setWarningMessage(`This room's capacity (${room.capacity}) is smaller than your attendee count (${attendees}). Consider a larger room.`);
+        return;
+      }
+      
+      // Check equipment requirements
+      const room = rooms.find(r => r.id === roomId);
+      if (room && selectedEquipment.length > 0) {
+        const missingEquipment = selectedEquipment.filter(eq => !room.equipment.includes(eq));
+        if (missingEquipment.length > 0) {
+          setWarningMessage(`This room is missing required equipment: ${missingEquipment.join(', ')}`);
+          return;
+        }
+      }
+      
+      // If all checks pass, select the time slot
+      setWarningMessage(null);
       onSelectTimeSlot(roomId, date, startTime, endTime);
     }
   };
@@ -220,13 +262,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
       <div className="md:col-span-1 space-y-4 bg-white p-4 rounded-lg border shadow-sm">
         <h3 className="font-medium text-lg mb-4">Meeting Requirements</h3>
         
-        {/* Date selector */}
+        {/* Date selector - Most important, at the top */}
         <div className="space-y-2">
           <Label>Date</Label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Calendar className="h-4 w-4" />
+              <Button variant="outline" className="w-full justify-start gap-2 border-primary/50">
+                <Calendar className="h-4 w-4 text-primary" />
                 {format(date, "PPP")}
               </Button>
             </PopoverTrigger>
@@ -242,23 +284,102 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </PopoverContent>
           </Popover>
         </div>
-        
-        {/* Room capacity */}
+
+        {/* Time Range Selector - Right after date */}
         <div className="space-y-2">
-          <Label>Room Capacity</Label>
-          <Select value={capacityFilter} onValueChange={setCapacityFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any capacity" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any-capacity">Any capacity</SelectItem>
-              <SelectItem value="2">2+ people</SelectItem>
-              <SelectItem value="4">4+ people</SelectItem>
-              <SelectItem value="8">8+ people</SelectItem>
-              <SelectItem value="12">12+ people</SelectItem>
-              <SelectItem value="16">16+ people</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label>Meeting Time</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <Clock className="h-4 w-4 mr-2" />
+                  {selectedTimeRange?.start || "Start Time"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="grid grid-cols-3 gap-1">
+                  {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => (
+                    <Button 
+                      key={time} 
+                      variant="outline" 
+                      className="text-center"
+                      onClick={() => {
+                        // Set end time to 1 hour after start
+                        const [hour, min] = time.split(':').map(Number);
+                        const endHour = hour + 1 > 17 ? 18 : hour + 1;
+                        const endTime = `${endHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                        handleTimeRangeSelect(time, endTime);
+                      }}
+                    >
+                      {time}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <Clock className="h-4 w-4 mr-2" />
+                  {selectedTimeRange?.end || "End Time"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="grid grid-cols-3 gap-1">
+                  {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => (
+                    <Button 
+                      key={time} 
+                      variant="outline" 
+                      className="text-center"
+                      disabled={selectedTimeRange?.start && selectedTimeRange.start >= time}
+                      onClick={() => {
+                        if (selectedTimeRange?.start) {
+                          handleTimeRangeSelect(selectedTimeRange.start, time);
+                        }
+                      }}
+                    >
+                      {time}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        
+        {/* Number of attendees */}
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <Label>Number of Attendees</Label>
+            <span className="text-sm text-muted-foreground">{attendees}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => setAttendees(prev => Math.max(1, prev - 1))}
+            >
+              -
+            </Button>
+            <div className="flex-1">
+              <Slider
+                value={[attendees]}
+                min={1}
+                max={20}
+                step={1}
+                onValueChange={(value) => setAttendees(value[0])}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => setAttendees(prev => Math.min(20, prev + 1))}
+            >
+              +
+            </Button>
+          </div>
         </div>
         
         {/* Equipment */}
@@ -323,6 +444,16 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </div>
           )}
         </div>
+
+        {/* Warning message */}
+        {warningMessage && (
+          <Alert className="bg-amber-50 border-amber-200 mt-4">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-amber-800">
+              {warningMessage}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
       
       {/* Right panel - Timeline */}
@@ -336,7 +467,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               <span>Available</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-amber-300 mr-1"></div>
+              <div className="w-3 h-3 rounded-full bg-amber-400 mr-1"></div>
               <span>Soon Booked</span>
             </div>
             <div className="flex items-center">
@@ -356,7 +487,8 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                   key={time} 
                   className={cn(
                     "flex-1 text-center p-1 text-xs font-medium",
-                    index % 2 === 0 ? "border-l bg-gray-100" : ""
+                    index % 2 === 0 ? "border-l bg-gray-100" : "",
+                    selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
                   )}
                 >
                   {time}
@@ -375,9 +507,17 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               {filteredRooms.map((room) => (
                 <div key={room.id} className="flex border-b last:border-b-0">
                   <div className="w-40 border-r p-2 font-medium">
-                    <div>{room.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Capacity: {room.capacity}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div>{room.name}</div>
+                        <div className="text-xs text-muted-foreground flex items-center">
+                          <Users className="h-3 w-3 mr-1" />
+                          {room.capacity}
+                        </div>
+                      </div>
+                      {attendees > room.capacity && (
+                        <span className="text-xs text-red-500">Too small</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex-1 flex">
@@ -386,6 +526,15 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                       const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
                       const booking = getBookingInfo(room.id, time);
                       const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
+                      
+                      // Highlight time slots within the selected time range
+                      const isInSelectedRange = selectedTimeRange && 
+                        time >= selectedTimeRange.start && 
+                        time < selectedTimeRange.end;
+                      
+                      // Calculate if this slot should be shown as available within the selected range
+                      const isAvailableInRange = isInSelectedRange && isAvailable;
+                      const isConflictingWithRange = isInSelectedRange && !isAvailable;
                       
                       return (
                         <Tooltip key={`${room.id}-${time}`}>
@@ -397,8 +546,10 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                                 isAvailable 
                                   ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
                                   : isSoonBooked
-                                    ? "bg-amber-100"
-                                    : "bg-red-100 hover:bg-red-200"
+                                    ? "bg-amber-100 hover:bg-amber-200"
+                                    : "bg-red-100 hover:bg-red-200",
+                                isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
+                                isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
                               )}
                               onClick={() => {
                                 if (isAvailable) {
@@ -454,6 +605,44 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </TooltipProvider>
           )}
         </div>
+
+        {/* Quick time slot selection buttons */}
+        {date && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-sm font-medium mr-2 mt-1">Quick Select:</span>
+            {["Morning (9-12)", "Afternoon (1-5)", "Hour (Next Available)"].map(slot => (
+              <Button
+                key={slot}
+                variant="outline"
+                size="sm"
+                className="bg-primary-50"
+                onClick={() => {
+                  // Handle quick slot selection
+                  if (slot === "Morning (9-12)") {
+                    handleTimeRangeSelect("09:00", "12:00");
+                  } else if (slot === "Afternoon (1-5)") {
+                    handleTimeRangeSelect("13:00", "17:00");
+                  } else {
+                    // Find next available hour
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    const startHour = currentHour < 8 ? 8 : 
+                                     currentHour >= 17 ? 8 : // If after 5pm, default to 8am next day
+                                     currentHour + 1;
+                    const endHour = startHour + 1 > 17 ? 18 : startHour + 1;
+                    
+                    handleTimeRangeSelect(
+                      `${startHour.toString().padStart(2, '0')}:00`,
+                      `${endHour.toString().padStart(2, '0')}:00`
+                    );
+                  }
+                }}
+              >
+                {slot}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
