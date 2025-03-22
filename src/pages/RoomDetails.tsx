@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { rooms } from "@/lib/data";
@@ -15,6 +16,8 @@ import {
   ResizablePanel,
   ResizableHandle
 } from "@/components/ui/resizable";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AnimatePresence, motion } from "framer-motion";
 
 const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,14 +27,30 @@ const RoomDetails = () => {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<BookingFormData | null>(null);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
   
   // If room not found, redirect to rooms page
   useEffect(() => {
     if (!room && id) {
-      toast.error("Room not found");
+      toast.error("Room not found", {
+        description: "We couldn't find the room you're looking for. Let's find you another great space!"
+      });
       navigate("/rooms");
     }
   }, [id, room, navigate]);
+  
+  // Reset booking success state after 5 seconds
+  useEffect(() => {
+    let timeout: number;
+    if (bookingSuccess) {
+      timeout = window.setTimeout(() => {
+        setBookingSuccess(false);
+      }, 5000);
+    }
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [bookingSuccess]);
   
   if (!room) {
     return null;
@@ -46,17 +65,27 @@ const RoomDetails = () => {
     setPendingBooking(bookingData);
     setBookingOpen(false);
     setConfirmationOpen(true);
+    
+    // Provide immediate feedback
+    toast.success("Booking details submitted!", {
+      description: "Just one more step to confirm your reservation"
+    });
   };
   
   const handleConfirmBooking = () => {
     if (pendingBooking) {
       // Here you would typically save the booking to your backend
-      toast.success("Room booked successfully!");
+      setBookingSuccess(true);
+      toast.success(`Room booked successfully!`, {
+        description: `${room.name} is now reserved for your meeting on ${pendingBooking.date}`
+      });
       setConfirmationOpen(false);
       setPendingBooking(null);
       
-      // Redirect to my bookings page
-      navigate("/rooms?tab=bookings");
+      // Redirect to my bookings page after a short delay
+      setTimeout(() => {
+        navigate("/rooms?tab=bookings");
+      }, 2000);
     }
   };
   
@@ -71,6 +100,23 @@ const RoomDetails = () => {
           <ArrowLeft className="h-4 w-4" />
           Back to Rooms
         </Button>
+        
+        <AnimatePresence>
+          {bookingSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-4"
+            >
+              <Alert className="bg-green-50 border-green-200 text-green-800">
+                <AlertDescription className="font-medium">
+                  Awesome! Your room is booked. Redirecting to your bookings...
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         <h1 className="text-3xl font-bold tracking-tight">{room.name}</h1>
         <p className="text-muted-foreground mt-1 flex items-center">
