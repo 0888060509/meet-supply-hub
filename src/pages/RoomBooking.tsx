@@ -1,7 +1,9 @@
+
 import { useState } from "react";
-import { rooms, bookings, Room } from "@/lib/data";
+import { rooms, bookings, Room, Booking } from "@/lib/data";
 import RoomCard from "@/components/RoomCard";
-import BookingCalendar from "@/components/BookingCalendar";
+import BookingCalendar, { BookingFormData } from "@/components/BookingCalendar";
+import BookingConfirmation from "@/components/BookingConfirmation";
 import { 
   Dialog, 
   DialogContent, 
@@ -9,6 +11,16 @@ import {
   DialogTitle,
   DialogDescription 
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Tabs,
   TabsContent,
@@ -33,11 +45,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Search, X } from "lucide-react";
+import { Calendar, MapPin, Search, X, Clock, Users } from "lucide-react";
+import { toast } from "sonner";
 
 const RoomBooking = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+  const [pendingBooking, setPendingBooking] = useState<BookingFormData | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [capacityFilter, setCapacityFilter] = useState("");
   const [equipmentFilter, setEquipmentFilter] = useState("");
@@ -52,11 +69,44 @@ const RoomBooking = () => {
     if (room) {
       setSelectedRoom(room);
       setBookingOpen(true);
+      setConfirmationOpen(false);
     }
   };
   
-  const handleBookingComplete = () => {
+  const handleBookingData = (bookingData: BookingFormData) => {
+    setPendingBooking(bookingData);
     setBookingOpen(false);
+    setConfirmationOpen(true);
+  };
+  
+  const handleConfirmBooking = () => {
+    if (pendingBooking) {
+      // Here you would typically save the booking to your backend
+      // For now we'll just show a success message
+      toast.success("Room booked successfully!");
+      setConfirmationOpen(false);
+      setPendingBooking(null);
+      
+      // In a real app, you would add the new booking to your bookings state
+      // and refresh the relevant views
+    }
+  };
+  
+  const handleCancelBooking = (bookingId: string) => {
+    setBookingToCancel(bookingId);
+    setCancelDialogOpen(true);
+  };
+  
+  const confirmCancelBooking = () => {
+    if (bookingToCancel) {
+      // Here you would typically delete the booking from your backend
+      toast.success("Booking cancelled successfully");
+      setCancelDialogOpen(false);
+      setBookingToCancel(null);
+      
+      // In a real app, you would remove the booking from your bookings state
+      // and refresh the relevant views
+    }
   };
   
   // Filter rooms based on search and filters
@@ -136,7 +186,6 @@ const RoomBooking = () => {
                 <SelectValue placeholder="Capacity" />
               </SelectTrigger>
               <SelectContent>
-                {/* Fixed: Using "any-capacity" instead of empty string */}
                 <SelectItem value="any-capacity">Any capacity</SelectItem>
                 <SelectItem value="2">2+ people</SelectItem>
                 <SelectItem value="4">4+ people</SelectItem>
@@ -151,7 +200,6 @@ const RoomBooking = () => {
                 <SelectValue placeholder="Equipment" />
               </SelectTrigger>
               <SelectContent>
-                {/* Fixed: Using "any-equipment" instead of empty string */}
                 <SelectItem value="any-equipment">Any equipment</SelectItem>
                 {equipmentOptions.map((item) => (
                   <SelectItem key={item} value={item}>
@@ -206,10 +254,10 @@ const RoomBooking = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Room</TableHead>
+                    <TableHead>Meeting</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Time</TableHead>
-                    <TableHead>Purpose</TableHead>
+                    <TableHead>Room</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -219,6 +267,21 @@ const RoomBooking = () => {
                     return (
                       <TableRow key={booking.id}>
                         <TableCell className="font-medium">
+                          {booking.title}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                            {booking.date}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                            {`${booking.startTime} - ${booking.endTime}`}
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <div className="flex flex-col">
                             {room?.name}
                             <span className="text-xs text-muted-foreground flex items-center">
@@ -227,11 +290,13 @@ const RoomBooking = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>{booking.date}</TableCell>
-                        <TableCell>{`${booking.startTime} - ${booking.endTime}`}</TableCell>
-                        <TableCell>{booking.title}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleCancelBooking(booking.id)}
+                          >
                             <X className="h-4 w-4" />
                             <span className="sr-only">Cancel</span>
                           </Button>
@@ -261,11 +326,48 @@ const RoomBooking = () => {
             <BookingCalendar
               room={selectedRoom}
               existingBookings={bookings.filter(b => b.roomId === selectedRoom.id)}
-              onBookingComplete={handleBookingComplete}
+              onBookingComplete={handleBookingData}
             />
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          {pendingBooking && (
+            <BookingConfirmation
+              bookingData={pendingBooking}
+              onConfirm={handleConfirmBooking}
+              onCancel={() => {
+                setConfirmationOpen(false);
+                setBookingOpen(true);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Cancel Booking Confirmation */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this booking? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep booking</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmCancelBooking}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, cancel booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

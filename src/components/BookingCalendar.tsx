@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Room, Booking } from "@/lib/data";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -18,7 +19,18 @@ import { toast } from "sonner";
 interface BookingCalendarProps {
   room: Room;
   existingBookings: Booking[];
-  onBookingComplete: () => void;
+  onBookingComplete: (bookingData: BookingFormData) => void;
+}
+
+export interface BookingFormData {
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  attendees: number;
+  equipment: string[];
+  roomId: string;
+  roomName: string;
 }
 
 const timeSlots = [
@@ -26,6 +38,15 @@ const timeSlots = [
   "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
   "17:00", "17:30", "18:00"
+];
+
+const attendeeOptions = [
+  { value: "2", label: "1-2 people" },
+  { value: "4", label: "3-4 people" },
+  { value: "8", label: "5-8 people" },
+  { value: "12", label: "9-12 people" },
+  { value: "16", label: "13-16 people" },
+  { value: "20", label: "17-20 people" },
 ];
 
 const BookingCalendar = ({ 
@@ -37,6 +58,8 @@ const BookingCalendar = ({
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
   const [meetingTitle, setMeetingTitle] = useState<string>("");
+  const [attendees, setAttendees] = useState<number>(0);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
 
   const formatDate = (date: Date | undefined) => {
     return date ? format(date, "yyyy-MM-dd") : "";
@@ -73,27 +96,49 @@ const BookingCalendar = ({
       )
     : [];
 
+  const handleEquipmentChange = (equipment: string) => {
+    setSelectedEquipment(prev => {
+      if (prev.includes(equipment)) {
+        return prev.filter(item => item !== equipment);
+      } else {
+        return [...prev, equipment];
+      }
+    });
+  };
+
   const handleBookNow = () => {
-    if (!date || !startTime || !endTime || !meetingTitle) {
-      toast.error("Please fill in all fields");
+    if (!date || !startTime || !endTime || !meetingTitle || attendees === 0) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
-    // Here you would typically save the booking to your backend
-    toast.success("Room booked successfully!");
+    const bookingData: BookingFormData = {
+      title: meetingTitle,
+      date: formatDate(date),
+      startTime,
+      endTime,
+      attendees,
+      equipment: selectedEquipment,
+      roomId: room.id,
+      roomName: room.name
+    };
+
+    // Send booking data to parent component
+    onBookingComplete(bookingData);
     
-    // Reset form and notify parent
+    // Reset form
     setDate(new Date());
     setStartTime("");
     setEndTime("");
     setMeetingTitle("");
-    onBookingComplete();
+    setAttendees(0);
+    setSelectedEquipment([]);
   };
 
   return (
     <div className="space-y-4">
       <div className="grid gap-1">
-        <Label htmlFor="meeting-title">Meeting Title</Label>
+        <Label htmlFor="meeting-title">Meeting Title *</Label>
         <Input
           id="meeting-title"
           placeholder="Enter meeting title"
@@ -102,8 +147,27 @@ const BookingCalendar = ({
         />
       </div>
       
+      <div className="grid gap-1">
+        <Label htmlFor="attendees">Number of Attendees *</Label>
+        <Select 
+          value={attendees.toString()} 
+          onValueChange={(value) => setAttendees(Number(value))}
+        >
+          <SelectTrigger id="attendees">
+            <SelectValue placeholder="Select number of attendees" />
+          </SelectTrigger>
+          <SelectContent>
+            {attendeeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <div>
-        <Label className="mb-1 block">Select Date</Label>
+        <Label className="mb-1 block">Select Date *</Label>
         <Calendar
           mode="single"
           selected={date}
@@ -115,7 +179,7 @@ const BookingCalendar = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-1">
-          <Label htmlFor="start-time">Start Time</Label>
+          <Label htmlFor="start-time">Start Time *</Label>
           <Select
             value={startTime}
             onValueChange={(value) => {
@@ -138,7 +202,7 @@ const BookingCalendar = ({
         </div>
         
         <div className="grid gap-1">
-          <Label htmlFor="end-time">End Time</Label>
+          <Label htmlFor="end-time">End Time *</Label>
           <Select
             value={endTime}
             onValueChange={setEndTime}
@@ -157,11 +221,27 @@ const BookingCalendar = ({
           </Select>
         </div>
       </div>
+
+      <div className="space-y-2">
+        <Label>Required Equipment</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {room.equipment.map((item) => (
+            <div key={item} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`equipment-${item}`} 
+                checked={selectedEquipment.includes(item)}
+                onCheckedChange={() => handleEquipmentChange(item)}
+              />
+              <Label htmlFor={`equipment-${item}`} className="cursor-pointer">{item}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
       
       <Button 
         className="w-full mt-4" 
         onClick={handleBookNow}
-        disabled={!date || !startTime || !endTime || !meetingTitle}
+        disabled={!date || !startTime || !endTime || !meetingTitle || attendees === 0}
       >
         Book {room.name}
       </Button>
