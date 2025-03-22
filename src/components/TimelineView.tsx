@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Room, Booking } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -225,16 +224,15 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
     
     if (allSlotsAvailable) {
       // Check if room capacity matches the number of attendees
-      const room = rooms.find(r => r.id === roomId);
-      if (room && attendees > room.capacity) {
-        setWarningMessage(`This room's capacity (${room.capacity}) is smaller than your attendee count (${attendees}). Consider a larger room.`);
+      const selectedRoom = rooms.find(r => r.id === roomId);
+      if (selectedRoom && attendees > selectedRoom.capacity) {
+        setWarningMessage(`This room's capacity (${selectedRoom.capacity}) is smaller than your attendee count (${attendees}). Consider a larger room.`);
         return;
       }
       
       // Check equipment requirements
-      const room = rooms.find(r => r.id === roomId);
-      if (room && selectedEquipment.length > 0) {
-        const missingEquipment = selectedEquipment.filter(eq => !room.equipment.includes(eq));
+      if (selectedRoom && selectedEquipment.length > 0) {
+        const missingEquipment = selectedEquipment.filter(eq => !selectedRoom.equipment.includes(eq));
         if (missingEquipment.length > 0) {
           setWarningMessage(`This room is missing required equipment: ${missingEquipment.join(', ')}`);
           return;
