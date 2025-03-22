@@ -9,16 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Room, Booking } from "@/lib/data";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Clock } from "lucide-react";
 
 interface BookingCalendarProps {
   room: Room;
   existingBookings: Booking[];
-  onBookingComplete: (startTime: string, endTime: string) => void;
+  onBookingComplete: () => void;
 }
 
 const timeSlots = [
@@ -36,6 +36,7 @@ const BookingCalendar = ({
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [meetingTitle, setMeetingTitle] = useState<string>("");
 
   const formatDate = (date: Date | undefined) => {
     return date ? format(date, "yyyy-MM-dd") : "";
@@ -73,16 +74,34 @@ const BookingCalendar = ({
     : [];
 
   const handleBookNow = () => {
-    if (!date || !startTime || !endTime) {
-      toast.error("Please select both start and end times");
+    if (!date || !startTime || !endTime || !meetingTitle) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    onBookingComplete(startTime, endTime);
+    // Here you would typically save the booking to your backend
+    toast.success("Room booked successfully!");
+    
+    // Reset form and notify parent
+    setDate(new Date());
+    setStartTime("");
+    setEndTime("");
+    setMeetingTitle("");
+    onBookingComplete();
   };
 
   return (
     <div className="space-y-4">
+      <div className="grid gap-1">
+        <Label htmlFor="meeting-title">Meeting Title</Label>
+        <Input
+          id="meeting-title"
+          placeholder="Enter meeting title"
+          value={meetingTitle}
+          onChange={(e) => setMeetingTitle(e.target.value)}
+        />
+      </div>
+      
       <div>
         <Label className="mb-1 block">Select Date</Label>
         <Calendar
@@ -105,8 +124,7 @@ const BookingCalendar = ({
             }}
             disabled={!date || availableStartTimes.length === 0}
           >
-            <SelectTrigger id="start-time" className="flex gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <SelectTrigger id="start-time">
               <SelectValue placeholder="Select start time" />
             </SelectTrigger>
             <SelectContent>
@@ -126,8 +144,7 @@ const BookingCalendar = ({
             onValueChange={setEndTime}
             disabled={!startTime || availableEndTimes.length === 0}
           >
-            <SelectTrigger id="end-time" className="flex gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <SelectTrigger id="end-time">
               <SelectValue placeholder="Select end time" />
             </SelectTrigger>
             <SelectContent>
@@ -144,9 +161,9 @@ const BookingCalendar = ({
       <Button 
         className="w-full mt-4" 
         onClick={handleBookNow}
-        disabled={!date || !startTime || !endTime}
+        disabled={!date || !startTime || !endTime || !meetingTitle}
       >
-        Continue to Confirmation
+        Book {room.name}
       </Button>
     </div>
   );
