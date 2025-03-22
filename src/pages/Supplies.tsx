@@ -79,6 +79,14 @@ const Supplies = () => {
     }
   };
 
+  // Fix for the document.querySelector error
+  const handleSwitchToAllSupplies = () => {
+    const tabsTrigger = document.querySelector('button[value="all-supplies"]') as HTMLButtonElement;
+    if (tabsTrigger) {
+      tabsTrigger.click();
+    }
+  };
+
   return (
     <div className="container py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -181,7 +189,7 @@ const Supplies = () => {
             <div className="text-center py-12 border rounded-lg">
               <h3 className="text-lg font-medium">No requests</h3>
               <p className="text-muted-foreground mt-1 mb-4">You haven't made any supply requests yet</p>
-              <Button onClick={() => document.querySelector('button[value="all-supplies"]')?.click()}>
+              <Button onClick={handleSwitchToAllSupplies}>
                 Browse Supplies
               </Button>
             </div>
