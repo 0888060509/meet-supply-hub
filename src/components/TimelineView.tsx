@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 
 interface TimelineViewProps {
   rooms: Room[];
@@ -29,14 +30,33 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const [date, setDate] = useState<Date>(new Date());
   const [capacityFilter, setCapacityFilter] = useState<string>("");
   const [equipmentFilter, setEquipmentFilter] = useState<string>("");
+  const [timeSlotDuration, setTimeSlotDuration] = useState<number>(30); // Minutes - controlled by zoom slider
   
-  // Time slots from 8 AM to 6 PM in 30-minute increments
-  const timeSlots = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-    "17:00", "17:30", "18:00"
-  ];
+  // Generate time slots based on duration (zoom level)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 8; // 8 AM
+    const endHour = 18; // 6 PM
+    
+    const minutesInDay = (endHour - startHour) * 60;
+    const slotCount = minutesInDay / timeSlotDuration;
+    
+    for (let i = 0; i < slotCount; i++) {
+      const minutes = i * timeSlotDuration;
+      const hour = Math.floor(minutes / 60) + startHour;
+      const minute = minutes % 60;
+      
+      const formattedHour = hour.toString().padStart(2, '0');
+      const formattedMinute = minute.toString().padStart(2, '0');
+      
+      slots.push(`${formattedHour}:${formattedMinute}`);
+    }
+    
+    return slots;
+  };
+  
+  // Time slots based on zoom level
+  const timeSlots = generateTimeSlots();
   
   // Get unique equipment options for filter
   const equipmentOptions = Array.from(
@@ -70,17 +90,43 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
     });
   };
   
+  // Get booking information for a tooltip
+  const getBookingInfo = (roomId: string, timeSlot: string) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    
+    const booking = bookings.find(booking => {
+      return (
+        booking.roomId === roomId &&
+        booking.date === dateStr &&
+        booking.startTime <= timeSlot &&
+        booking.endTime > timeSlot
+      );
+    });
+    
+    return booking ? `${booking.title} (${booking.startTime} - ${booking.endTime})` : null;
+  };
+  
   // Handle clicking on a time slot
   const handleTimeSlotClick = (roomId: string, startTime: string) => {
-    // Find the next 1-hour time slot that is available
+    // Calculate end time based on time slot duration
     const startIndex = timeSlots.indexOf(startTime);
     
-    // Look for an hour-long slot (2 consecutive 30-min slots)
-    if (startIndex < timeSlots.length - 1 && 
-        isTimeSlotAvailable(roomId, timeSlots[startIndex]) && 
-        isTimeSlotAvailable(roomId, timeSlots[startIndex + 1])) {
-      
-      onSelectTimeSlot(roomId, date, startTime, timeSlots[startIndex + 2] || "19:00");
+    // Default to 1-hour booking (adjust based on timeSlotDuration)
+    const slotsForOneHour = 60 / timeSlotDuration;
+    const endIndex = startIndex + slotsForOneHour;
+    const endTime = endIndex < timeSlots.length ? timeSlots[endIndex] : "19:00";
+    
+    // Check if all slots in the hour are available
+    let allSlotsAvailable = true;
+    for (let i = startIndex; i < startIndex + slotsForOneHour && i < timeSlots.length; i++) {
+      if (!isTimeSlotAvailable(roomId, timeSlots[i])) {
+        allSlotsAvailable = false;
+        break;
+      }
+    }
+    
+    if (allSlotsAvailable) {
+      onSelectTimeSlot(roomId, date, startTime, endTime);
     }
   };
   
@@ -177,11 +223,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               <div className="flex-1 flex">
                 {timeSlots.map((time, index) => {
                   const isAvailable = isTimeSlotAvailable(room.id, time);
+                  const bookingInfo = getBookingInfo(room.id, time);
+                  
                   return (
                     <div 
                       key={`${room.id}-${time}`}
                       className={cn(
-                        "flex-1 h-12 border-r last:border-r-0",
+                        "flex-1 h-12 border-r last:border-r-0 relative group",
                         index % 2 === 0 ? "border-l" : "",
                         isAvailable 
                           ? "bg-green-50 hover:bg-green-100 cursor-pointer" 
@@ -192,13 +240,35 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                           handleTimeSlotClick(room.id, time);
                         }
                       }}
-                    />
+                      title={isAvailable ? "Available" : bookingInfo || "Booked"}
+                    >
+                      {!isAvailable && bookingInfo && (
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/70 text-white p-1 text-xs transition-opacity">
+                          {bookingInfo}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
           ))
         )}
+      </div>
+      
+      {/* Zoom slider */}
+      <div className="mt-4 flex items-center gap-4">
+        <span className="text-sm text-muted-foreground">Zoom:</span>
+        <div className="w-32">
+          <Slider
+            value={[timeSlotDuration]}
+            min={15}
+            max={60}
+            step={15}
+            onValueChange={(value) => setTimeSlotDuration(value[0])}
+          />
+        </div>
+        <span className="text-sm text-muted-foreground">{timeSlotDuration} min</span>
       </div>
       
       <div className="flex items-center justify-start space-x-4 mt-2 text-sm text-muted-foreground">
