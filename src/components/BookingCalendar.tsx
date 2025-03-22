@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,6 +20,7 @@ interface BookingCalendarProps {
   room: Room;
   existingBookings: Booking[];
   onBookingComplete: (bookingData: BookingFormData) => void;
+  initialData?: BookingFormData | null;
 }
 
 export interface BookingFormData {
@@ -52,14 +53,31 @@ const attendeeOptions = [
 const BookingCalendar = ({ 
   room, 
   existingBookings,
-  onBookingComplete 
+  onBookingComplete,
+  initialData
 }: BookingCalendarProps) => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [startTime, setStartTime] = useState<string>("");
-  const [endTime, setEndTime] = useState<string>("");
-  const [meetingTitle, setMeetingTitle] = useState<string>("");
-  const [attendees, setAttendees] = useState<number>(0);
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [date, setDate] = useState<Date | undefined>(
+    initialData?.date ? new Date(initialData.date) : new Date()
+  );
+  const [startTime, setStartTime] = useState<string>(initialData?.startTime || "");
+  const [endTime, setEndTime] = useState<string>(initialData?.endTime || "");
+  const [meetingTitle, setMeetingTitle] = useState<string>(initialData?.title || "");
+  const [attendees, setAttendees] = useState<number>(initialData?.attendees || 0);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(
+    initialData?.equipment || []
+  );
+
+  // Set initial data when it changes
+  useEffect(() => {
+    if (initialData) {
+      setDate(initialData.date ? new Date(initialData.date) : new Date());
+      setStartTime(initialData.startTime || "");
+      setEndTime(initialData.endTime || "");
+      setMeetingTitle(initialData.title || "");
+      setAttendees(initialData.attendees || 0);
+      setSelectedEquipment(initialData.equipment || []);
+    }
+  }, [initialData]);
 
   const formatDate = (date: Date | undefined) => {
     return date ? format(date, "yyyy-MM-dd") : "";
@@ -126,13 +144,15 @@ const BookingCalendar = ({
     // Send booking data to parent component
     onBookingComplete(bookingData);
     
-    // Reset form
-    setDate(new Date());
-    setStartTime("");
-    setEndTime("");
-    setMeetingTitle("");
-    setAttendees(0);
-    setSelectedEquipment([]);
+    // Reset form (if needed)
+    if (!initialData) {
+      setDate(new Date());
+      setStartTime("");
+      setEndTime("");
+      setMeetingTitle("");
+      setAttendees(0);
+      setSelectedEquipment([]);
+    }
   };
 
   return (
