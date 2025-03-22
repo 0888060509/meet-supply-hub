@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Room, Booking } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,19 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, Clock, Users, AlertTriangle } from "lucide-react";
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  AlertTriangle, 
+  Projector, 
+  MonitorCheck, 
+  Wifi, 
+  Tv, 
+  Presentation, 
+  Mic2, 
+  StickyNote
+} from "lucide-react";
 import { format, isAfter, isBefore, isToday, set } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
@@ -35,6 +48,17 @@ interface TimelineViewProps {
   bookings: Booking[];
   onSelectTimeSlot: (roomId: string, date: Date, startTime: string, endTime: string) => void;
 }
+
+// Equipment icon mapping
+const equipmentIcons: Record<string, React.ReactNode> = {
+  "Projector": <Projector className="h-4 w-4" />,
+  "Whiteboard": <StickyNote className="h-4 w-4" />,
+  "Video Conference": <Tv className="h-4 w-4" />,
+  "Teleconference": <Mic2 className="h-4 w-4" />,
+  "Display Screen": <MonitorCheck className="h-4 w-4" />,
+  "WiFi": <Wifi className="h-4 w-4" />,
+  "Presentation Setup": <Presentation className="h-4 w-4" />
+};
 
 const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) => {
   const [date, setDate] = useState<Date>(new Date());
@@ -380,7 +404,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           </div>
         </div>
         
-        {/* Equipment */}
+        {/* Equipment - Improved with icons */}
         <div className="space-y-2">
           <Label>Required Equipment</Label>
           <div className="grid grid-cols-2 gap-2">
@@ -393,8 +417,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 />
                 <Label 
                   htmlFor={`equipment-${equipment}`}
-                  className="text-sm cursor-pointer"
+                  className="text-sm cursor-pointer flex items-center gap-1.5"
                 >
+                  {equipmentIcons[equipment] || <AlertTriangle className="h-3.5 w-3.5" />}
                   {equipment}
                 </Label>
               </div>
@@ -432,10 +457,12 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           <div className="text-sm text-muted-foreground mb-2">Available Rooms</div>
           <div className="font-medium text-lg">{filteredRooms.length} of {rooms.length}</div>
           
+          {/* Equipment badges */}
           {selectedEquipment.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {selectedEquipment.map(eq => (
-                <Badge key={eq} variant="outline" className="text-xs">
+                <Badge key={eq} variant="outline" className="text-xs flex items-center gap-1 px-2 py-1">
+                  {equipmentIcons[eq] || <AlertTriangle className="h-3 w-3" />}
                   {eq}
                 </Badge>
               ))}
@@ -505,16 +532,29 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               {filteredRooms.map((room) => (
                 <div key={room.id} className="flex border-b last:border-b-0">
                   <div className="w-40 border-r p-2 font-medium">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div>{room.name}</div>
-                        <div className="text-xs text-muted-foreground flex items-center">
-                          <Users className="h-3 w-3 mr-1" />
-                          {room.capacity}
-                        </div>
+                    <div className="flex flex-col">
+                      <div className="font-medium">{room.name}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Users className="h-3 w-3" />
+                        <span>{room.capacity}</span>
                       </div>
+                      
+                      {/* Equipment icons */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {room.equipment.map(eq => (
+                          <Tooltip key={eq}>
+                            <TooltipTrigger>
+                              <div className="text-primary">
+                                {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{eq}</TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </div>
+                      
                       {attendees > room.capacity && (
-                        <span className="text-xs text-red-500">Too small</span>
+                        <span className="text-xs text-red-500 mt-1">Too small</span>
                       )}
                     </div>
                   </div>
