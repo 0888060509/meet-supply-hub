@@ -18,6 +18,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +111,32 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
     });
   };
   
+  // Check if a time slot is soon to be booked (within the next hour)
+  const isTimeSlotSoonBooked = (roomId: string, timeSlot: string) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    
+    // Only check for today's date
+    if (format(date, "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd")) {
+      return false;
+    }
+    
+    // Convert timeSlot to minutes since midnight
+    const [hour, minute] = timeSlot.split(':').map(Number);
+    const timeSlotMinutes = hour * 60 + minute;
+    
+    // Convert current time to minutes since midnight
+    const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+    const currentMinutes = currentHour * 60 + currentMinute;
+    
+    // Check if timeSlot is within the next 60 minutes
+    const isWithinNextHour = timeSlotMinutes >= currentMinutes && 
+                            timeSlotMinutes <= currentMinutes + 60;
+    
+    // If it's within the next hour and will be booked
+    return isWithinNextHour && !isTimeSlotAvailable(roomId, timeSlot);
+  };
+  
   // Get booking information for a tooltip
   const getBookingInfo = (roomId: string, timeSlot: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
@@ -118,7 +150,35 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
       );
     });
     
-    return booking ? `${booking.title} (${booking.startTime} - ${booking.endTime})` : null;
+    return booking;
+  };
+  
+  // Get next booking information for available slots
+  const getNextBookingInfo = (roomId: string, timeSlot: string) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const [hour, minute] = timeSlot.split(':').map(Number);
+    const timeSlotMinutes = hour * 60 + minute;
+    
+    // Find the next booking for this room on this date
+    const roomBookings = bookings.filter(booking => 
+      booking.roomId === roomId && booking.date === dateStr
+    );
+    
+    // Sort bookings by start time
+    const sortedBookings = roomBookings.sort((a, b) => {
+      const [aHour, aMinute] = a.startTime.split(':').map(Number);
+      const [bHour, bMinute] = b.startTime.split(':').map(Number);
+      return (aHour * 60 + aMinute) - (bHour * 60 + bMinute);
+    });
+    
+    // Find the next booking after this time slot
+    const nextBooking = sortedBookings.find(booking => {
+      const [bookingHour, bookingMinute] = booking.startTime.split(':').map(Number);
+      const bookingMinutes = bookingHour * 60 + bookingMinute;
+      return bookingMinutes > timeSlotMinutes;
+    });
+    
+    return nextBooking;
   };
   
   // Handle clicking on a time slot
@@ -272,27 +332,31 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-100 mr-1"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
               <span>Available</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-red-50 mr-1"></div>
+              <div className="w-3 h-3 rounded-full bg-amber-300 mr-1"></div>
+              <span>Soon Booked</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
               <span>Booked</span>
             </div>
           </div>
         </div>
         
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border rounded-lg overflow-hidden shadow-sm">
           {/* Timeline header (time slots) */}
           <div className="flex border-b">
-            <div className="w-40 border-r p-2 bg-gray-50 font-medium">Room</div>
+            <div className="w-40 border-r p-2 bg-gray-100 font-medium">Room</div>
             <div className="flex-1 flex">
               {timeSlots.map((time, index) => (
                 <div 
                   key={time} 
                   className={cn(
-                    "flex-1 text-center p-1 text-xs",
-                    index % 2 === 0 ? "border-l bg-gray-50" : ""
+                    "flex-1 text-center p-1 text-xs font-medium",
+                    index % 2 === 0 ? "border-l bg-gray-100" : ""
                   )}
                 >
                   {time}
@@ -307,47 +371,87 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               No rooms match your criteria. Try adjusting your filters.
             </div>
           ) : (
-            filteredRooms.map((room) => (
-              <div key={room.id} className="flex border-b last:border-b-0">
-                <div className="w-40 border-r p-2 font-medium">
-                  <div>{room.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Capacity: {room.capacity}
+            <TooltipProvider>
+              {filteredRooms.map((room) => (
+                <div key={room.id} className="flex border-b last:border-b-0">
+                  <div className="w-40 border-r p-2 font-medium">
+                    <div>{room.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Capacity: {room.capacity}
+                    </div>
+                  </div>
+                  <div className="flex-1 flex">
+                    {timeSlots.map((time, index) => {
+                      const isAvailable = isTimeSlotAvailable(room.id, time);
+                      const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
+                      const booking = getBookingInfo(room.id, time);
+                      const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
+                      
+                      return (
+                        <Tooltip key={`${room.id}-${time}`}>
+                          <TooltipTrigger asChild>
+                            <div 
+                              className={cn(
+                                "flex-1 h-14 border-r last:border-r-0 relative group transition-colors duration-150",
+                                index % 2 === 0 ? "border-l" : "",
+                                isAvailable 
+                                  ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
+                                  : isSoonBooked
+                                    ? "bg-amber-100"
+                                    : "bg-red-100 hover:bg-red-200"
+                              )}
+                              onClick={() => {
+                                if (isAvailable) {
+                                  handleTimeSlotClick(room.id, time);
+                                }
+                              }}
+                            >
+                              {!isAvailable && booking && (
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/70 text-white p-1 text-xs transition-all">
+                                  <span className="text-center">
+                                    {booking.title}<br/>
+                                    {booking.startTime} - {booking.endTime}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-xs">
+                            {isAvailable ? (
+                              <div>
+                                <div className="font-medium text-green-600">Available</div>
+                                <div className="text-sm">
+                                  {nextBooking ? (
+                                    <span>Next booking starts at {nextBooking.startTime}</span>
+                                  ) : (
+                                    <span>Room is free for the rest of the day</span>
+                                  )}
+                                </div>
+                                <div className="text-xs mt-1 text-muted-foreground">
+                                  Click to book from {time}
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="font-medium text-red-600">Booked</div>
+                                {booking && (
+                                  <>
+                                    <div className="text-sm font-medium">{booking.title}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {booking.startTime} - {booking.endTime}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="flex-1 flex">
-                  {timeSlots.map((time, index) => {
-                    const isAvailable = isTimeSlotAvailable(room.id, time);
-                    const bookingInfo = getBookingInfo(room.id, time);
-                    
-                    return (
-                      <div 
-                        key={`${room.id}-${time}`}
-                        className={cn(
-                          "flex-1 h-12 border-r last:border-r-0 relative group",
-                          index % 2 === 0 ? "border-l" : "",
-                          isAvailable 
-                            ? "bg-green-50 hover:bg-green-100 cursor-pointer" 
-                            : "bg-red-50"
-                        )}
-                        onClick={() => {
-                          if (isAvailable) {
-                            handleTimeSlotClick(room.id, time);
-                          }
-                        }}
-                        title={isAvailable ? "Available" : bookingInfo || "Booked"}
-                      >
-                        {!isAvailable && bookingInfo && (
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/70 text-white p-1 text-xs transition-opacity">
-                            {bookingInfo}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))
+              ))}
+            </TooltipProvider>
           )}
         </div>
       </div>
