@@ -57,7 +57,7 @@ const Dashboard = () => {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/rooms?tab=my-bookings">View My Bookings</Link>
+              <Link to="/rooms?tab=bookings">View My Bookings</Link>
             </Button>
           </CardFooter>
         </Card>

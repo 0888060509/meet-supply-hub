@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { rooms, bookings, Room, Booking } from "@/lib/data";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import RoomCard from "@/components/RoomCard";
 import BookingCalendar, { BookingFormData } from "@/components/BookingCalendar";
 import BookingConfirmation from "@/components/BookingConfirmation";
@@ -21,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Search, X } from "lucide-react";
+import { Calendar, MapPin, Search, X, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -50,7 +51,13 @@ const RoomBooking = () => {
   const [capacityFilter, setCapacityFilter] = useState("");
   const [equipmentFilter, setEquipmentFilter] = useState("");
   const [activeView, setActiveView] = useState<"grid" | "timeline">("timeline");
-  const [activeTab, setActiveTab] = useState<"rooms" | "bookings">("rooms");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<"rooms" | "bookings">(
+    tabParam === "bookings" ? "bookings" : "rooms"
+  );
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
   
@@ -82,8 +89,11 @@ const RoomBooking = () => {
       setConfirmationOpen(false);
       setPendingBooking(null);
       
-      // In a real app, you would add the new booking to your bookings state
-      // and refresh the relevant views
+      // Navigate to the My Bookings tab
+      setActiveTab("bookings");
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set('tab', 'bookings');
+      navigate(`${location.pathname}?${newSearchParams.toString()}`);
     }
   };
   
@@ -129,6 +139,14 @@ const RoomBooking = () => {
       setPendingBooking(formData);
       setBookingOpen(true);
     }
+  };
+
+  // Update URL when tab changes
+  const handleTabChange = (value: "rooms" | "bookings") => {
+    setActiveTab(value);
+    const newSearchParams = new URLSearchParams(location.search);
+    newSearchParams.set('tab', value);
+    navigate(`${location.pathname}?${newSearchParams.toString()}`);
   };
   
   // Filter rooms based on search and filters
@@ -180,7 +198,7 @@ const RoomBooking = () => {
             </div>
             
             {/* Tabs for All Rooms / My Bookings */}
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "rooms" | "bookings")} className="mb-6">
+            <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as "rooms" | "bookings")} className="mb-6">
               <TabsList className="w-full md:w-auto bg-accent/20">
                 <TabsTrigger value="rooms" className="flex-1 md:flex-initial">All Rooms</TabsTrigger>
                 <TabsTrigger value="bookings" className="flex-1 md:flex-initial">My Bookings</TabsTrigger>
@@ -234,19 +252,60 @@ const RoomBooking = () => {
                 {activeView === "grid" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredRooms.map((room) => (
-                      <RoomCard
-                        key={room.id}
-                        room={room}
-                        onBookNow={handleBookNow}
-                      />
+                      <div key={room.id} className="relative">
+                        <RoomCard
+                          room={room}
+                          onBookNow={handleBookNow}
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="absolute top-4 right-4 bg-white/90 hover:bg-white"
+                          asChild
+                        >
+                          <Link to={`/rooms/${room.id}`}>
+                            <Info className="h-4 w-4 mr-1" />
+                            View Details
+                          </Link>
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <TimelineView
-                    rooms={filteredRooms}
-                    bookings={bookings}
-                    onSelectTimeSlot={handleTimeSlotSelect}
-                  />
+                  <div>
+                    <TimelineView
+                      rooms={filteredRooms}
+                      bookings={bookings}
+                      onSelectTimeSlot={handleTimeSlotSelect}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+                      {filteredRooms.map(room => (
+                        <div key={room.id} className="flex justify-between items-center p-3 border rounded-md">
+                          <div>
+                            <p className="font-medium">{room.name}</p>
+                            <p className="text-xs text-muted-foreground">{room.location}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              asChild
+                            >
+                              <Link to={`/rooms/${room.id}`}>
+                                <Info className="h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={() => handleBookNow(room.id)}
+                            >
+                              Book
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </>
             ) : (
@@ -266,7 +325,18 @@ const RoomBooking = () => {
                             <div className="flex items-start justify-between">
                               <div>
                                 <div className="font-medium">{booking.title}</div>
-                                <div className="text-sm mt-1">{room?.name}</div>
+                                <div className="text-sm mt-1 flex items-center">
+                                  {room?.name}
+                                  {room && (
+                                    <Link 
+                                      to={`/rooms/${room.id}`}
+                                      className="ml-2 text-primary text-xs flex items-center hover:underline"
+                                    >
+                                      <Info className="h-3 w-3 mr-1" />
+                                      View Room
+                                    </Link>
+                                  )}
+                                </div>
                                 <div className="text-sm text-muted-foreground mt-1">
                                   {booking.date}, {booking.startTime} - {booking.endTime}
                                 </div>

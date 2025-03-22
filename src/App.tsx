@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import RoomBooking from "./pages/RoomBooking";
+import RoomDetails from "./pages/RoomDetails";
 import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
@@ -53,6 +54,14 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute>
                           <RoomBooking />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/rooms/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <RoomDetails />
                         </ProtectedRoute>
                       } 
                     />
