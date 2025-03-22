@@ -1,9 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/data";
 import { CalendarIcon, Clock, Users, CheckSquare, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface BookingConfirmationProps {
   room: Room;

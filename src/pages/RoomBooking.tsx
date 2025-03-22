@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { rooms, bookings, Room, Booking } from "@/lib/data";
 import RoomCard from "@/components/RoomCard";
@@ -10,7 +9,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogDescription 
+  DialogDescription,
+  DialogTrigger 
 } from "@/components/ui/dialog";
 import {
   Tabs,
@@ -36,7 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Search, X, Clock, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Search, X, Clock, AlertCircle, Users, CheckSquare } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
