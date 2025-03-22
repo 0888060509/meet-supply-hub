@@ -98,12 +98,15 @@ const Supplies = () => {
         </div>
         
         <div className="space-x-2">
-          <Button asChild variant="outline">
-            <DialogTrigger onClick={() => setRequestDialogOpen(true)}>
-              <FileText className="h-4 w-4 mr-2" />
-              New Request
+          {/* Fixed: Properly wrapping DialogTrigger inside Dialog component */}
+          <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                New Request
+              </Button>
             </DialogTrigger>
-          </Button>
+          </Dialog>
         </div>
       </div>
       
@@ -245,7 +248,7 @@ const Supplies = () => {
         </TabsContent>
       </Tabs>
       
-      {/* New Request Dialog */}
+      {/* New Request Dialog - Move the DialogContent here */}
       <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
