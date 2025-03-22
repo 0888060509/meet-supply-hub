@@ -1,15 +1,20 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { rooms } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, CheckSquare, ArrowLeft } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Calendar, MapPin, Users, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import BookingCalendar, { BookingFormData } from "@/components/BookingCalendar";
 import BookingConfirmation from "@/components/BookingConfirmation";
+import RoomBookingSidebar from "@/components/RoomBookingSidebar";
 import { toast } from "sonner";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle
+} from "@/components/ui/resizable";
 
 const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -74,80 +79,75 @@ const RoomDetails = () => {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Room Image */}
-        <div className="md:col-span-2">
-          <Card className="overflow-hidden">
-            <div 
-              className="h-64 md:h-80 bg-accent/30 flex items-center justify-center"
-              style={{
-                backgroundImage: `url(${room.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              }}
-            >
-              {!room.image && (
-                <Calendar className="h-16 w-16 text-muted-foreground/40" />
-              )}
-            </div>
-          </Card>
-        </div>
-        
-        {/* Room Details and Booking */}
-        <div className="md:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Room Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Capacity</h3>
-                <p className="flex items-center mt-1">
-                  <Users className="h-4 w-4 mr-2" />
-                  {room.capacity} people
-                </p>
-              </div>
-              
-              {room.equipment.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Equipment</h3>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {room.equipment.map((item) => (
-                      <Badge key={item} variant="outline" className="bg-accent/50">
-                        {item}
-                      </Badge>
-                    ))}
-                  </div>
+      <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
+        {/* Room Image and Details Panel */}
+        <ResizablePanel defaultSize={70} minSize={40}>
+          <div className="h-full p-6">
+            <div className="grid grid-cols-1 gap-6 h-full">
+              {/* Room Image */}
+              <Card className="overflow-hidden">
+                <div 
+                  className="h-64 md:h-80 bg-accent/30 flex items-center justify-center"
+                  style={{
+                    backgroundImage: `url(${room.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  {!room.image && (
+                    <Calendar className="h-16 w-16 text-muted-foreground/40" />
+                  )}
                 </div>
-              )}
-              
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
-                <p className="mt-1 text-sm">
-                  A spacious meeting room with modern amenities, perfect for team meetings and presentations.
-                </p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handleBookNow}>
-                Book This Room
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
+              </Card>
+
+              {/* Room Description */}
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-2">About this room</h2>
+                  <p className="text-muted-foreground">
+                    A spacious meeting room with modern amenities, perfect for team meetings and presentations.
+                  </p>
+                  
+                  <div className="mt-4">
+                    <h3 className="font-medium text-sm text-muted-foreground mb-2">Room features</h3>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2" />
+                      <span className="text-sm">{room.capacity} people</span>
+                    </div>
+                    
+                    {room.equipment.length > 0 && (
+                      <div className="mt-4">
+                        <h3 className="font-medium text-sm text-muted-foreground mb-2">Equipment</h3>
+                        <div className="flex flex-wrap gap-1">
+                          {room.equipment.map((item) => (
+                            <Badge key={item} variant="outline" className="bg-accent/50">
+                              {item}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResizablePanel>
+        
+        {/* Resize Handle */}
+        <ResizableHandle withHandle />
+        
+        {/* Sidebar Panel */}
+        <ResizablePanel defaultSize={30} minSize={25}>
+          <div className="h-full p-6">
+            <RoomBookingSidebar />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
       
       {/* Booking Dialog */}
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Book {room.name}</DialogTitle>
-            <DialogDescription className="flex items-center text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5 mr-1 inline" />
-              {room.location}
-            </DialogDescription>
-          </DialogHeader>
-          
           <BookingCalendar
             room={room}
             existingBookings={[]}
