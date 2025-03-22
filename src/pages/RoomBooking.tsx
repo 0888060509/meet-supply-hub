@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { rooms, bookings, Room } from "@/lib/data";
 import RoomCard from "@/components/RoomCard";
@@ -65,11 +64,11 @@ const RoomBooking = () => {
     const matchesSearch = room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           room.location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCapacity = capacityFilter 
+    const matchesCapacity = capacityFilter && capacityFilter !== "any-capacity"
       ? room.capacity >= parseInt(capacityFilter) 
       : true;
     
-    const matchesEquipment = equipmentFilter
+    const matchesEquipment = equipmentFilter && equipmentFilter !== "any-equipment"
       ? room.equipment.includes(equipmentFilter)
       : true;
     
@@ -78,6 +77,14 @@ const RoomBooking = () => {
   
   // Mock user bookings for the My Bookings tab
   const userBookings = bookings.filter(booking => booking.userId === "user1");
+
+  // Fix for the document.querySelector error
+  const handleSwitchToAllRooms = () => {
+    const tabsTrigger = document.querySelector('button[value="all-rooms"]') as HTMLButtonElement;
+    if (tabsTrigger) {
+      tabsTrigger.click();
+    }
+  };
 
   return (
     <div className="container py-8 animate-fade-in">
@@ -129,7 +136,8 @@ const RoomBooking = () => {
                 <SelectValue placeholder="Capacity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any capacity</SelectItem>
+                {/* Fixed: Using "any-capacity" instead of empty string */}
+                <SelectItem value="any-capacity">Any capacity</SelectItem>
                 <SelectItem value="2">2+ people</SelectItem>
                 <SelectItem value="4">4+ people</SelectItem>
                 <SelectItem value="8">8+ people</SelectItem>
@@ -143,7 +151,8 @@ const RoomBooking = () => {
                 <SelectValue placeholder="Equipment" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any equipment</SelectItem>
+                {/* Fixed: Using "any-equipment" instead of empty string */}
+                <SelectItem value="any-equipment">Any equipment</SelectItem>
                 {equipmentOptions.map((item) => (
                   <SelectItem key={item} value={item}>
                     {item}
@@ -163,8 +172,8 @@ const RoomBooking = () => {
                 className="mt-4"
                 onClick={() => {
                   setSearchTerm("");
-                  setCapacityFilter("");
-                  setEquipmentFilter("");
+                  setCapacityFilter("any-capacity");
+                  setEquipmentFilter("any-equipment");
                 }}
               >
                 Clear All Filters
@@ -188,7 +197,7 @@ const RoomBooking = () => {
             <div className="text-center py-12 border rounded-lg">
               <h3 className="text-lg font-medium">No upcoming bookings</h3>
               <p className="text-muted-foreground mt-1 mb-4">You don't have any room bookings yet</p>
-              <Button onClick={() => document.querySelector('button[value="all-rooms"]')?.click()}>
+              <Button onClick={handleSwitchToAllRooms}>
                 Book a Room
               </Button>
             </div>
