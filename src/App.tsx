@@ -14,6 +14,9 @@ import RoomBooking from "./pages/RoomBooking";
 import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
+import AdminRoomManagement from "./pages/AdminRoomManagement";
+import AdminRoomForm from "./pages/AdminRoomForm";
+import AdminAllBookings from "./pages/AdminAllBookings";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -67,10 +70,23 @@ const App: React.FC = () => {
                       path="/admin/rooms" 
                       element={
                         <ProtectedRoute requireAdmin>
-                          <div className="container py-8">
-                            <h1 className="text-3xl font-bold">Admin: Room Management</h1>
-                            <p className="text-muted-foreground">This page is coming soon</p>
-                          </div>
+                          <AdminRoomManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/rooms/new" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminRoomForm />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/rooms/edit/:id" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminRoomForm />
                         </ProtectedRoute>
                       } 
                     />
@@ -78,10 +94,7 @@ const App: React.FC = () => {
                       path="/admin/bookings" 
                       element={
                         <ProtectedRoute requireAdmin>
-                          <div className="container py-8">
-                            <h1 className="text-3xl font-bold">Admin: All Bookings</h1>
-                            <p className="text-muted-foreground">This page is coming soon</p>
-                          </div>
+                          <AdminAllBookings />
                         </ProtectedRoute>
                       } 
                     />
