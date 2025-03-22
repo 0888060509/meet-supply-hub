@@ -124,7 +124,7 @@ const RoomDetails = () => {
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
                 <p className="mt-1 text-sm">
-                  {room.description || "A spacious meeting room with modern amenities, perfect for team meetings and presentations."}
+                  A spacious meeting room with modern amenities, perfect for team meetings and presentations.
                 </p>
               </div>
             </CardContent>
