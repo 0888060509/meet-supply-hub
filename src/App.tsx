@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,82 +15,88 @@ import Supplies from "./pages/Supplies";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner position="top-right" />
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1 pt-16"> {/* Add pt-16 for navbar spacing */}
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                
-                {/* Protected routes */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/rooms" 
-                  element={
-                    <ProtectedRoute>
-                      <RoomBooking />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/supplies" 
-                  element={
-                    <ProtectedRoute>
-                      <Supplies />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                {/* Admin routes */}
-                <Route 
-                  path="/admin/rooms" 
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <div className="container py-8">
-                        <h1 className="text-3xl font-bold">Admin: Room Management</h1>
-                        <p className="text-muted-foreground">This page is coming soon</p>
-                      </div>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin/bookings" 
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <div className="container py-8">
-                        <h1 className="text-3xl font-bold">Admin: All Bookings</h1>
-                        <p className="text-muted-foreground">This page is coming soon</p>
-                      </div>
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                {/* Fallback routes */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-          </div>
-        </TooltipProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+// Make App a function component explicitly for React
+const App: React.FC = () => {
+  return (
+    <React.StrictMode>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner position="top-right" />
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-1 pt-16"> {/* Add pt-16 for navbar spacing */}
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Protected routes */}
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/rooms" 
+                      element={
+                        <ProtectedRoute>
+                          <RoomBooking />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/supplies" 
+                      element={
+                        <ProtectedRoute>
+                          <Supplies />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Admin routes */}
+                    <Route 
+                      path="/admin/rooms" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <div className="container py-8">
+                            <h1 className="text-3xl font-bold">Admin: Room Management</h1>
+                            <p className="text-muted-foreground">This page is coming soon</p>
+                          </div>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/bookings" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <div className="container py-8">
+                            <h1 className="text-3xl font-bold">Admin: All Bookings</h1>
+                            <p className="text-muted-foreground">This page is coming soon</p>
+                          </div>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Fallback routes */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
+            </TooltipProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+};
 
 export default App;
