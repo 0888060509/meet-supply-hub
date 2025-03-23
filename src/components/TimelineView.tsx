@@ -469,13 +469,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           </CardHeader>
           <CardContent className="p-0">
             <div className="border rounded-lg overflow-hidden">
-              <div className="relative">
+              <div className="relative h-[500px] flex flex-col">
                 {/* Fixed header that scrolls horizontally with the content */}
                 <div className="sticky top-0 z-20 flex border-b bg-white">
                   <div className="w-[200px] min-w-[200px] border-r p-2 bg-gray-100 font-medium">
                     Room
                   </div>
-                  <div className="overflow-x-auto" style={{ maxWidth: 'calc(100% - 200px)' }}>
+                  <div className="overflow-hidden" style={{ width: 'calc(100% - 200px)' }} id="header-scroll-container">
                     <div className="flex min-w-max">
                       {timeSlots.map((time, index) => (
                         <div 
@@ -498,11 +498,15 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                     No rooms match your criteria. Try adjusting your filters.
                   </div>
                 ) : (
-                  <div className="relative h-[500px] flex">
-                    {/* Fixed room column */}
-                    <div className="w-[200px] min-w-[200px] bg-white z-10 border-r overflow-y-auto h-[500px]">
+                  <div className="flex-1 flex overflow-hidden">
+                    {/* Fixed room column that scrolls vertically */}
+                    <div className="w-[200px] min-w-[200px] bg-white z-10 border-r overflow-y-auto" id="room-column">
                       {filteredRooms.map((room) => (
-                        <div key={`fixed-${room.id}`} className="p-2 font-medium border-b last:border-b-0" style={{ height: 'auto', minHeight: '56px' }}>
+                        <div 
+                          key={`fixed-${room.id}`} 
+                          className="p-2 font-medium border-b last:border-b-0"
+                          style={{ minHeight: '56px' }}
+                        >
                           <div className="flex flex-col">
                             <div className="font-medium">{room.name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -531,14 +535,31 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                       ))}
                     </div>
                     
-                    {/* Scrollable timeline content */}
-                    <div className="overflow-x-auto overflow-y-auto h-[500px]" style={{ maxWidth: 'calc(100% - 200px)' }}>
+                    {/* Scrollable timeline content - synchronized with header */}
+                    <div 
+                      className="overflow-y-auto overflow-x-auto flex-1" 
+                      id="timeline-content"
+                      onScroll={(e) => {
+                        const headerContainer = document.getElementById('header-scroll-container');
+                        if (headerContainer) {
+                          headerContainer.scrollLeft = e.currentTarget.scrollLeft;
+                        }
+                        
+                        const roomColumn = document.getElementById('room-column');
+                        if (roomColumn) {
+                          roomColumn.scrollTop = e.currentTarget.scrollTop;
+                        }
+                      }}
+                    >
                       <div className="min-w-max">
                         <TooltipProvider>
-                          {filteredRooms.map((room, roomIndex) => {
-                            // Get the height of the corresponding room info cell
+                          {filteredRooms.map((room) => {
                             return (
-                              <div key={room.id} className="border-b last:border-b-0" style={{ minHeight: '56px', height: 'auto' }}>
+                              <div 
+                                key={room.id} 
+                                className="border-b last:border-b-0"
+                                style={{ minHeight: '56px' }}
+                              >
                                 <div className="hidden">{room.name}</div>
                                 
                                 <div className="flex">
@@ -560,7 +581,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                                         <TooltipTrigger asChild>
                                           <div 
                                             className={cn(
-                                              "min-w-[60px] w-[60px] flex-shrink-0 h-full border-r last:border-r-0 relative transition-colors duration-150",
+                                              "min-w-[60px] w-[60px] flex-shrink-0 border-r last:border-r-0 relative transition-colors duration-150",
                                               index % 2 === 0 ? "border-l" : "",
                                               isAvailable 
                                                 ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
