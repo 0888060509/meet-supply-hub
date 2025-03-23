@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Room, Booking } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -42,12 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
-interface TimelineViewProps {
-  rooms: Room[];
-  bookings: Booking[];
-  onSelectTimeSlot: (roomId: string, date: Date, startTime: string, endTime: string) => void;
-}
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Equipment icon mapping
 const equipmentIcons: Record<string, React.ReactNode> = {
@@ -59,6 +53,12 @@ const equipmentIcons: Record<string, React.ReactNode> = {
   "WiFi": <Wifi className="h-4 w-4" />,
   "Presentation Setup": <Presentation className="h-4 w-4" />
 };
+
+interface TimelineViewProps {
+  rooms: Room[];
+  bookings: Booking[];
+  onSelectTimeSlot: (roomId: string, date: Date, startTime: string, endTime: string) => void;
+}
 
 const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) => {
   const [date, setDate] = useState<Date>(new Date());
@@ -281,406 +281,410 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Left panel - Meeting details and filters */}
-      <div className="md:col-span-1 space-y-4 bg-white p-4 rounded-lg border shadow-sm">
-        <h3 className="font-medium text-lg mb-4">Meeting Requirements</h3>
-        
-        {/* Date selector - Most important, at the top */}
-        <div className="space-y-2">
-          <Label>Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start gap-2 border-primary/50">
-                <Calendar className="h-4 w-4 text-primary" />
-                {format(date, "PPP")}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <CalendarComponent
-                mode="single"
-                selected={date}
-                onSelect={(newDate) => newDate && setDate(newDate)}
-                initialFocus
-                className="bg-white pointer-events-auto"
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Time Range Selector - Right after date */}
-        <div className="space-y-2">
-          <Label>Meeting Time</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <Clock className="h-4 w-4 mr-2" />
-                  {selectedTimeRange?.start || "Start Time"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <div className="grid grid-cols-3 gap-1">
-                  {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => (
-                    <Button 
-                      key={time} 
-                      variant="outline" 
-                      className="text-center"
-                      onClick={() => {
-                        // Set end time to 1 hour after start
-                        const [hour, min] = time.split(':').map(Number);
-                        const endHour = hour + 1 > 17 ? 18 : hour + 1;
-                        const endTime = `${endHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-                        handleTimeRangeSelect(time, endTime);
-                      }}
-                    >
-                      {time}
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <Clock className="h-4 w-4 mr-2" />
-                  {selectedTimeRange?.end || "End Time"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <div className="grid grid-cols-3 gap-1">
-                  {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => (
-                    <Button 
-                      key={time} 
-                      variant="outline" 
-                      className="text-center"
-                      disabled={selectedTimeRange?.start && selectedTimeRange.start >= time}
-                      onClick={() => {
-                        if (selectedTimeRange?.start) {
-                          handleTimeRangeSelect(selectedTimeRange.start, time);
-                        }
-                      }}
-                    >
-                      {time}
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-        
-        {/* Number of attendees */}
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label>Number of Attendees</Label>
-            <span className="text-sm text-muted-foreground">{attendees}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8 w-8 p-0"
-              onClick={() => setAttendees(prev => Math.max(1, prev - 1))}
-            >
-              -
-            </Button>
-            <div className="flex-1">
-              <Slider
-                value={[attendees]}
-                min={1}
-                max={20}
-                step={1}
-                onValueChange={(value) => setAttendees(value[0])}
-              />
+      <div className="md:col-span-1">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Meeting Requirements</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Date selector - Most important, at the top */}
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start gap-2 border-primary/50">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    {format(date, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <CalendarComponent
+                    mode="single"
+                    selected={date}
+                    onSelect={(newDate) => newDate && setDate(newDate)}
+                    initialFocus
+                    className="bg-white pointer-events-auto"
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8 w-8 p-0"
-              onClick={() => setAttendees(prev => Math.min(20, prev + 1))}
-            >
-              +
-            </Button>
-          </div>
-        </div>
-        
-        {/* Equipment - Improved with icons */}
-        <div className="space-y-2">
-          <Label>Required Equipment</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {equipmentOptions.map((equipment) => (
-              <div key={equipment} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={`equipment-${equipment}`} 
-                  checked={selectedEquipment.includes(equipment)}
-                  onCheckedChange={() => toggleEquipment(equipment)}
-                />
-                <Label 
-                  htmlFor={`equipment-${equipment}`}
-                  className="text-sm cursor-pointer flex items-center gap-1.5"
-                >
-                  {equipmentIcons[equipment] || <AlertTriangle className="h-3.5 w-3.5" />}
-                  {equipment}
-                </Label>
+
+            {/* Time Range Selector - Right after date */}
+            <div className="space-y-2">
+              <Label>Meeting Time</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Clock className="h-4 w-4 mr-2" />
+                      {selectedTimeRange?.start || "Start Time"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <div className="grid grid-cols-3 gap-1">
+                      {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => (
+                        <Button 
+                          key={time} 
+                          variant="outline" 
+                          className="text-center"
+                          onClick={() => {
+                            // Set end time to 1 hour after start
+                            const [hour, min] = time.split(':').map(Number);
+                            const endHour = hour + 1 > 17 ? 18 : hour + 1;
+                            const endTime = `${endHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                            handleTimeRangeSelect(time, endTime);
+                          }}
+                        >
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Clock className="h-4 w-4 mr-2" />
+                      {selectedTimeRange?.end || "End Time"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <div className="grid grid-cols-3 gap-1">
+                      {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => (
+                        <Button 
+                          key={time} 
+                          variant="outline" 
+                          className="text-center"
+                          disabled={selectedTimeRange?.start && selectedTimeRange.start >= time}
+                          onClick={() => {
+                            if (selectedTimeRange?.start) {
+                              handleTimeRangeSelect(selectedTimeRange.start, time);
+                            }
+                          }}
+                        >
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Room search */}
-        <div className="space-y-2">
-          <Label>Search Rooms</Label>
-          <Input
-            placeholder="Room name or location"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        {/* Timeline zoom */}
-        <div className="space-y-2 mt-6">
-          <div className="flex justify-between">
-            <Label>Timeline Zoom</Label>
-            <span className="text-sm text-muted-foreground">{timeSlotDuration} min</span>
-          </div>
-          <Slider
-            value={[timeSlotDuration]}
-            min={15}
-            max={60}
-            step={15}
-            onValueChange={(value) => setTimeSlotDuration(value[0])}
-          />
-        </div>
-        
-        {/* Available Rooms Count */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="text-sm text-muted-foreground mb-2">Available Rooms</div>
-          <div className="font-medium text-lg">{filteredRooms.length} of {rooms.length}</div>
-          
-          {/* Equipment badges */}
-          {selectedEquipment.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {selectedEquipment.map(eq => (
-                <Badge key={eq} variant="outline" className="text-xs flex items-center gap-1 px-2 py-1">
-                  {equipmentIcons[eq] || <AlertTriangle className="h-3 w-3" />}
-                  {eq}
-                </Badge>
-              ))}
             </div>
-          )}
-        </div>
+            
+            {/* Number of attendees */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label>Number of Attendees</Label>
+                <span className="text-sm text-muted-foreground">{attendees}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setAttendees(prev => Math.max(1, prev - 1))}
+                >
+                  -
+                </Button>
+                <div className="flex-1">
+                  <Slider
+                    value={[attendees]}
+                    min={1}
+                    max={20}
+                    step={1}
+                    onValueChange={(value) => setAttendees(value[0])}
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setAttendees(prev => Math.min(20, prev + 1))}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+            
+            {/* Equipment - Improved with icons */}
+            <div className="space-y-2">
+              <Label>Required Equipment</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {equipmentOptions.map((equipment) => (
+                  <div key={equipment} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`equipment-${equipment}`} 
+                      checked={selectedEquipment.includes(equipment)}
+                      onCheckedChange={() => toggleEquipment(equipment)}
+                    />
+                    <Label 
+                      htmlFor={`equipment-${equipment}`}
+                      className="text-sm cursor-pointer flex items-center gap-1.5"
+                    >
+                      {equipmentIcons[equipment] || <AlertTriangle className="h-3.5 w-3.5" />}
+                      {equipment}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Room search */}
+            <div className="space-y-2">
+              <Label>Search Rooms</Label>
+              <Input
+                placeholder="Room name or location"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-        {/* Warning message */}
-        {warningMessage && (
-          <Alert className="bg-amber-50 border-amber-200 mt-4">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="text-amber-800">
-              {warningMessage}
-            </AlertDescription>
-          </Alert>
-        )}
+            {/* Timeline zoom */}
+            <div className="space-y-2 mt-6">
+              <div className="flex justify-between">
+                <Label>Timeline Zoom</Label>
+                <span className="text-sm text-muted-foreground">{timeSlotDuration} min</span>
+              </div>
+              <Slider
+                value={[timeSlotDuration]}
+                min={15}
+                max={60}
+                step={15}
+                onValueChange={(value) => setTimeSlotDuration(value[0])}
+              />
+            </div>
+            
+            {/* Available Rooms Count */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="text-sm text-muted-foreground mb-2">Available Rooms</div>
+              <div className="font-medium text-lg">{filteredRooms.length} of {rooms.length}</div>
+              
+              {/* Equipment badges */}
+              {selectedEquipment.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedEquipment.map(eq => (
+                    <Badge key={eq} variant="outline" className="text-xs flex items-center gap-1 px-2 py-1">
+                      {equipmentIcons[eq] || <AlertTriangle className="h-3 w-3" />}
+                      {eq}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Warning message */}
+            {warningMessage && (
+              <Alert className="bg-amber-50 border-amber-200 mt-4">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-amber-800">
+                  {warningMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
       </div>
       
       {/* Right panel - Timeline */}
       <div className="md:col-span-2 space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-medium text-lg">Meeting Rooms Timeline</h3>
-          
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-              <span>Available</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-amber-400 mr-1"></div>
-              <span>Soon Booked</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-              <span>Booked</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="border rounded-lg overflow-hidden shadow-sm">
-          {/* Timeline header (time slots) */}
-          <div className="flex border-b">
-            <div className="w-40 border-r p-2 bg-gray-100 font-medium">Room</div>
-            <div className="flex-1 flex">
-              {timeSlots.map((time, index) => (
-                <div 
-                  key={time} 
-                  className={cn(
-                    "flex-1 text-center p-1 text-xs font-medium",
-                    index % 2 === 0 ? "border-l bg-gray-100" : "",
-                    selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
-                  )}
-                >
-                  {time}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Meeting Rooms Timeline</CardTitle>
+              
+              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                  <span>Available</span>
                 </div>
-              ))}
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-amber-400 mr-1"></div>
+                  <span>Soon Booked</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+                  <span>Booked</span>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          {/* Room rows with time slots */}
-          {filteredRooms.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No rooms match your criteria. Try adjusting your filters.
-            </div>
-          ) : (
-            <TooltipProvider>
-              {filteredRooms.map((room) => (
-                <div key={room.id} className="flex border-b last:border-b-0">
-                  <div className="w-40 border-r p-2 font-medium">
-                    <div className="flex flex-col">
-                      <div className="font-medium">{room.name}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Users className="h-3 w-3" />
-                        <span>{room.capacity}</span>
-                      </div>
-                      
-                      {/* Equipment icons */}
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {room.equipment.map(eq => (
-                          <Tooltip key={eq}>
-                            <TooltipTrigger>
-                              <div className="text-primary">
-                                {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">{eq}</TooltipContent>
-                          </Tooltip>
-                        ))}
-                      </div>
-                      
-                      {attendees > room.capacity && (
-                        <span className="text-xs text-red-500 mt-1">Too small</span>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="border rounded-lg overflow-hidden">
+              {/* Timeline header (time slots) */}
+              <div className="flex border-b">
+                <div className="w-40 border-r p-2 bg-gray-100 font-medium">Room</div>
+                <div className="flex-1 flex">
+                  {timeSlots.map((time, index) => (
+                    <div 
+                      key={time} 
+                      className={cn(
+                        "flex-1 text-center p-1 text-xs font-medium",
+                        index % 2 === 0 ? "border-l bg-gray-100" : "",
+                        selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
                       )}
+                    >
+                      {time}
                     </div>
-                  </div>
-                  <div className="flex-1 flex">
-                    {timeSlots.map((time, index) => {
-                      const isAvailable = isTimeSlotAvailable(room.id, time);
-                      const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
-                      const booking = getBookingInfo(room.id, time);
-                      const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
-                      
-                      // Highlight time slots within the selected time range
-                      const isInSelectedRange = selectedTimeRange && 
-                        time >= selectedTimeRange.start && 
-                        time < selectedTimeRange.end;
-                      
-                      // Calculate if this slot should be shown as available within the selected range
-                      const isAvailableInRange = isInSelectedRange && isAvailable;
-                      const isConflictingWithRange = isInSelectedRange && !isAvailable;
-                      
-                      return (
-                        <Tooltip key={`${room.id}-${time}`}>
-                          <TooltipTrigger asChild>
-                            <div 
-                              className={cn(
-                                "flex-1 h-14 border-r last:border-r-0 relative group transition-colors duration-150",
-                                index % 2 === 0 ? "border-l" : "",
-                                isAvailable 
-                                  ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
-                                  : isSoonBooked
-                                    ? "bg-amber-100 hover:bg-amber-200"
-                                    : "bg-red-100 hover:bg-red-200",
-                                isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
-                                isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
-                              )}
-                              onClick={() => {
-                                if (isAvailable) {
-                                  handleTimeSlotClick(room.id, time);
-                                }
-                              }}
-                            >
-                              {!isAvailable && booking && (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/70 text-white p-1 text-xs transition-all">
-                                  <span className="text-center">
-                                    {booking.title}<br/>
-                                    {booking.startTime} - {booking.endTime}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="right" className="max-w-xs">
-                            {isAvailable ? (
-                              <div>
-                                <div className="font-medium text-green-600">Available</div>
-                                <div className="text-sm">
-                                  {nextBooking ? (
-                                    <span>Next booking starts at {nextBooking.startTime}</span>
-                                  ) : (
-                                    <span>Room is free for the rest of the day</span>
-                                  )}
-                                </div>
-                                <div className="text-xs mt-1 text-muted-foreground">
-                                  Click to book from {time}
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <div className="font-medium text-red-600">Booked</div>
-                                {booking && (
-                                  <>
-                                    <div className="text-sm font-medium">{booking.title}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {booking.startTime} - {booking.endTime}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </TooltipProvider>
-          )}
-        </div>
-
-        {/* Quick time slot selection buttons */}
-        {date && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="text-sm font-medium mr-2 mt-1">Quick Select:</span>
-            {["Morning (9-12)", "Afternoon (1-5)", "Hour (Next Available)"].map(slot => (
-              <Button
-                key={slot}
-                variant="outline"
-                size="sm"
-                className="bg-primary-50"
-                onClick={() => {
-                  // Handle quick slot selection
-                  if (slot === "Morning (9-12)") {
-                    handleTimeRangeSelect("09:00", "12:00");
-                  } else if (slot === "Afternoon (1-5)") {
-                    handleTimeRangeSelect("13:00", "17:00");
-                  } else {
-                    // Find next available hour
-                    const now = new Date();
-                    const currentHour = now.getHours();
-                    const startHour = currentHour < 8 ? 8 : 
-                                     currentHour >= 17 ? 8 : // If after 5pm, default to 8am next day
-                                     currentHour + 1;
-                    const endHour = startHour + 1 > 17 ? 18 : startHour + 1;
-                    
-                    handleTimeRangeSelect(
-                      `${startHour.toString().padStart(2, '0')}:00`,
-                      `${endHour.toString().padStart(2, '0')}:00`
-                    );
-                  }
-                }}
-              >
-                {slot}
-              </Button>
-            ))}
-          </div>
-        )}
+              </div>
+              
+              {/* Room rows with time slots */}
+              {filteredRooms.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No rooms match your criteria. Try adjusting your filters.
+                </div>
+              ) : (
+                <TooltipProvider>
+                  {filteredRooms.map((room) => (
+                    <div key={room.id} className="flex border-b last:border-b-0">
+                      <div className="w-40 border-r p-2 font-medium">
+                        <div className="flex flex-col">
+                          <div className="font-medium">{room.name}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Users className="h-3 w-3" />
+                            <span>{room.capacity}</span>
+                          </div>
+                          
+                          {/* Equipment icons */}
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {room.equipment.map(eq => (
+                              <Tooltip key={eq}>
+                                <TooltipTrigger>
+                                  <div className="text-primary">
+                                    {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">{eq}</TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </div>
+                          
+                          {attendees > room.capacity && (
+                            <span className="text-xs text-red-500 mt-1">Too small</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1 flex">
+                        {timeSlots.map((time, index) => {
+                          const isAvailable = isTimeSlotAvailable(room.id, time);
+                          const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
+                          const booking = getBookingInfo(room.id, time);
+                          const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
+                          
+                          // Highlight time slots within the selected time range
+                          const isInSelectedRange = selectedTimeRange && 
+                            time >= selectedTimeRange.start && 
+                            time < selectedTimeRange.end;
+                          
+                          // Calculate if this slot should be shown as available within the selected range
+                          const isAvailableInRange = isInSelectedRange && isAvailable;
+                          const isConflictingWithRange = isInSelectedRange && !isAvailable;
+                          
+                          return (
+                            <Tooltip key={`${room.id}-${time}`}>
+                              <TooltipTrigger asChild>
+                                <div 
+                                  className={cn(
+                                    "flex-1 h-14 border-r last:border-r-0 relative transition-colors duration-150",
+                                    index % 2 === 0 ? "border-l" : "",
+                                    isAvailable 
+                                      ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
+                                      : isSoonBooked
+                                        ? "bg-amber-100 hover:bg-amber-200"
+                                        : "bg-red-100 hover:bg-red-200",
+                                    isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
+                                    isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
+                                  )}
+                                  onClick={() => {
+                                    if (isAvailable) {
+                                      handleTimeSlotClick(room.id, time);
+                                    }
+                                  }}
+                                >
+                                  
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="right" className="max-w-xs">
+                                {isAvailable ? (
+                                  <div>
+                                    <div className="font-medium text-green-600">Available</div>
+                                    <div className="text-sm">
+                                      {nextBooking ? (
+                                        <span>Next booking starts at {nextBooking.startTime}</span>
+                                      ) : (
+                                        <span>Room is free for the rest of the day</span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs mt-1 text-muted-foreground">
+                                      Click to book from {time}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div className="font-medium text-red-600">Booked</div>
+                                    {booking && (
+                                      <>
+                                        <div className="text-sm font-medium">{booking.title}</div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {booking.startTime} - {booking.endTime}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </TooltipProvider>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex-wrap gap-2 pt-4">
+            {/* Quick time slot selection buttons */}
+            {date && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium mr-2 mt-1">Quick Select:</span>
+                {["Morning (9-12)", "Afternoon (1-5)", "Hour (Next Available)"].map(slot => (
+                  <Button
+                    key={slot}
+                    variant="outline"
+                    size="sm"
+                    className="bg-primary-50"
+                    onClick={() => {
+                      // Handle quick slot selection
+                      if (slot === "Morning (9-12)") {
+                        handleTimeRangeSelect("09:00", "12:00");
+                      } else if (slot === "Afternoon (1-5)") {
+                        handleTimeRangeSelect("13:00", "17:00");
+                      } else {
+                        // Find next available hour
+                        const now = new Date();
+                        const currentHour = now.getHours();
+                        const startHour = currentHour < 8 ? 8 : 
+                                        currentHour >= 17 ? 8 : // If after 5pm, default to 8am next day
+                                        currentHour + 1;
+                        const endHour = startHour + 1 > 17 ? 18 : startHour + 1;
+                        
+                        handleTimeRangeSelect(
+                          `${startHour.toString().padStart(2, '0')}:00`,
+                          `${endHour.toString().padStart(2, '0')}:00`
+                        );
+                      }
+                    }}
+                  >
+                    {slot}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
