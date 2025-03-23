@@ -468,14 +468,16 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           </CardHeader>
           <CardContent className="p-0">
             <div className="border rounded-lg overflow-hidden">
-              <div className="flex border-b">
-                <div className="min-w-[200px] w-[200px] border-r p-2 bg-gray-100 font-medium">Room</div>
-                <div className="flex-1 flex">
+              <div className="flex border-b sticky top-0 z-10 bg-white">
+                <div className="w-[200px] min-w-[200px] border-r p-2 bg-gray-100 font-medium">
+                  Room
+                </div>
+                <div className="flex-1 flex overflow-hidden">
                   {timeSlots.map((time, index) => (
                     <div 
                       key={time} 
                       className={cn(
-                        "flex-1 text-center p-1 text-xs font-medium",
+                        "min-w-[60px] flex-shrink-0 text-center p-1 text-xs font-medium",
                         index % 2 === 0 ? "border-l bg-gray-100" : "",
                         selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
                       )}
@@ -491,120 +493,118 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                   No rooms match your criteria. Try adjusting your filters.
                 </div>
               ) : (
-                <div className="relative">
-                  <div className="flex" style={{ maxHeight: "500px" }}>
-                    <div className="min-w-[200px] w-[200px] bg-white z-10 border-r">
+                <div className="relative h-[500px] flex">
+                  <div className="w-[200px] min-w-[200px] bg-white z-10 border-r overflow-y-auto">
+                    {filteredRooms.map((room) => (
+                      <div key={`fixed-${room.id}`} className="h-14 p-2 font-medium border-b last:border-b-0">
+                        <div className="flex flex-col">
+                          <div className="font-medium">{room.name}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Users className="h-3 w-3" />
+                            <span>{room.capacity}</span>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {room.equipment.map(eq => (
+                              <Tooltip key={eq}>
+                                <TooltipTrigger>
+                                  <div className="text-primary">
+                                    {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">{eq}</TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </div>
+                          
+                          {attendees > room.capacity && (
+                            <span className="text-xs text-red-500 mt-1">Too small</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex-1 overflow-x-auto overflow-y-auto">
+                    <TooltipProvider>
                       {filteredRooms.map((room) => (
-                        <div key={`fixed-${room.id}`} className="h-14 p-2 font-medium border-b last:border-b-0">
-                          <div className="flex flex-col">
-                            <div className="font-medium">{room.name}</div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <Users className="h-3 w-3" />
-                              <span>{room.capacity}</span>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {room.equipment.map(eq => (
-                                <Tooltip key={eq}>
-                                  <TooltipTrigger>
-                                    <div className="text-primary">
-                                      {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                        <div key={room.id} className="flex border-b last:border-b-0 h-14">
+                          <div className="hidden">{room.name}</div>
+                          
+                          <div className="flex">
+                            {timeSlots.map((time, index) => {
+                              const isAvailable = isTimeSlotAvailable(room.id, time);
+                              const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
+                              const booking = getBookingInfo(room.id, time);
+                              const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
+                              
+                              const isInSelectedRange = selectedTimeRange && 
+                                time >= selectedTimeRange.start && 
+                                time < selectedTimeRange.end;
+                              
+                              const isAvailableInRange = isInSelectedRange && isAvailable;
+                              const isConflictingWithRange = isInSelectedRange && !isAvailable;
+                              
+                              return (
+                                <Tooltip key={`${room.id}-${time}`}>
+                                  <TooltipTrigger asChild>
+                                    <div 
+                                      className={cn(
+                                        "min-w-[60px] flex-shrink-0 h-full border-r last:border-r-0 relative transition-colors duration-150",
+                                        index % 2 === 0 ? "border-l" : "",
+                                        isAvailable 
+                                          ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
+                                          : isSoonBooked
+                                            ? "bg-amber-100 hover:bg-amber-200"
+                                            : "bg-red-100 hover:bg-red-200",
+                                        isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
+                                        isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
+                                      )}
+                                      onClick={() => {
+                                        if (isAvailable) {
+                                          handleTimeSlotClick(room.id, time);
+                                        }
+                                      }}
+                                    >
+                                      {/* Removed content here as per request - no info inside the slot */}
                                     </div>
                                   </TooltipTrigger>
-                                  <TooltipContent side="right">{eq}</TooltipContent>
+                                  <TooltipContent side="right" className="max-w-xs z-50">
+                                    {isAvailable ? (
+                                      <div>
+                                        <div className="font-medium text-green-600">Available</div>
+                                        <div className="text-sm">
+                                          {nextBooking ? (
+                                            <span>Next booking starts at {nextBooking.startTime}</span>
+                                          ) : (
+                                            <span>Room is free for the rest of the day</span>
+                                          )}
+                                        </div>
+                                        <div className="text-xs mt-1 text-muted-foreground">
+                                          Click to book from {time}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <div className="font-medium text-red-600">Booked</div>
+                                        {booking && (
+                                          <>
+                                            <div className="text-sm font-medium">{booking.title}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                              {booking.startTime} - {booking.endTime}
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
+                                  </TooltipContent>
                                 </Tooltip>
-                              ))}
-                            </div>
-                            
-                            {attendees > room.capacity && (
-                              <span className="text-xs text-red-500 mt-1">Too small</span>
-                            )}
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
-                    </div>
-                    
-                    <ScrollArea className="flex-1" style={{ maxHeight: "500px" }}>
-                      <TooltipProvider>
-                        {filteredRooms.map((room) => (
-                          <div key={room.id} className="flex border-b last:border-b-0">
-                            <div className="hidden">{room.name}</div>
-                            
-                            <div className="flex">
-                              {timeSlots.map((time, index) => {
-                                const isAvailable = isTimeSlotAvailable(room.id, time);
-                                const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
-                                const booking = getBookingInfo(room.id, time);
-                                const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
-                                
-                                const isInSelectedRange = selectedTimeRange && 
-                                  time >= selectedTimeRange.start && 
-                                  time < selectedTimeRange.end;
-                                
-                                const isAvailableInRange = isInSelectedRange && isAvailable;
-                                const isConflictingWithRange = isInSelectedRange && !isAvailable;
-                                
-                                return (
-                                  <Tooltip key={`${room.id}-${time}`}>
-                                    <TooltipTrigger asChild>
-                                      <div 
-                                        className={cn(
-                                          "flex-1 h-14 border-r last:border-r-0 relative transition-colors duration-150",
-                                          index % 2 === 0 ? "border-l" : "",
-                                          isAvailable 
-                                            ? "bg-green-100 hover:bg-green-200 cursor-pointer" 
-                                            : isSoonBooked
-                                              ? "bg-amber-100 hover:bg-amber-200"
-                                              : "bg-red-100 hover:bg-red-200",
-                                          isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
-                                          isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
-                                        )}
-                                        onClick={() => {
-                                          if (isAvailable) {
-                                            handleTimeSlotClick(room.id, time);
-                                          }
-                                        }}
-                                      >
-                                        <div className="w-full h-full"></div>
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="right" className="max-w-xs">
-                                      {isAvailable ? (
-                                        <div>
-                                          <div className="font-medium text-green-600">Available</div>
-                                          <div className="text-sm">
-                                            {nextBooking ? (
-                                              <span>Next booking starts at {nextBooking.startTime}</span>
-                                            ) : (
-                                              <span>Room is free for the rest of the day</span>
-                                            )}
-                                          </div>
-                                          <div className="text-xs mt-1 text-muted-foreground">
-                                            Click to book from {time}
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div>
-                                          <div className="font-medium text-red-600">Booked</div>
-                                          {booking && (
-                                            <>
-                                              <div className="text-sm font-medium">{booking.title}</div>
-                                              <div className="text-xs text-muted-foreground">
-                                                {booking.startTime} - {booking.endTime}
-                                              </div>
-                                            </>
-                                          )}
-                                        </div>
-                                      )}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </TooltipProvider>
-                    </ScrollArea>
+                    </TooltipProvider>
                   </div>
                 </div>
               )}
