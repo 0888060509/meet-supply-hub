@@ -3,132 +3,100 @@ import { supplies, requests, Supply, Request } from "@/lib/data";
 import SupplyCard from "@/components/SupplyCard";
 import RequestForm from "@/components/RequestForm";
 import { toast } from "sonner";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  X, 
-  Package, 
-  FileText, 
-  Clock, 
-  CheckCircle2, 
-  Package2,
-  ShoppingCart,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  ArrowUpDown,
-  Info
-} from "lucide-react";
+import { Search, X, Package, FileText, Clock, CheckCircle2, Package2, ShoppingCart, Calendar, ChevronDown, ChevronUp, ArrowUpDown, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 const Supplies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
-  const [requestItems, setRequestItems] = useState<{ supplyId: string; quantity: number }[]>([]);
+  const [requestItems, setRequestItems] = useState<{
+    supplyId: string;
+    quantity: number;
+  }[]>([]);
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<"requestDate" | "status">("requestDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [requestDetailsOpen, setRequestDetailsOpen] = useState<{[key: string]: boolean}>({});
+  const [requestDetailsOpen, setRequestDetailsOpen] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null);
-  
   const categories = Array.from(new Set(supplies.map(supply => supply.category)));
-  
   const filteredSupplies = supplies.filter(supply => {
     const matchesSearch = supply.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter ? supply.category === categoryFilter : true;
     return matchesSearch && matchesCategory;
   });
-  
   const handleRequestItem = (supplyId: string, quantity: number) => {
     const existingItemIndex = requestItems.findIndex(item => item.supplyId === supplyId);
-    
     if (existingItemIndex >= 0) {
       const updatedItems = [...requestItems];
       updatedItems[existingItemIndex].quantity += quantity;
       setRequestItems(updatedItems);
     } else {
-      setRequestItems([...requestItems, { supplyId, quantity }]);
+      setRequestItems([...requestItems, {
+        supplyId,
+        quantity
+      }]);
     }
-    
     const supply = supplies.find(s => s.id === supplyId);
     toast.success(`Added ${quantity} ${supply?.name}(s) to your request`, {
       description: `${requestItems.length + 1} item(s) in your request cart`
     });
   };
-  
-  const handleSubmitRequest = (items: { supplyId: string; quantity: number }[], notes?: string) => {
+  const handleSubmitRequest = (items: {
+    supplyId: string;
+    quantity: number;
+  }[], notes?: string) => {
     const newRequestId = `request${requests.length + 1}`;
     setHighlightedRequestId(newRequestId);
-    
     toast.success("Supply request submitted successfully!", {
       description: "You can track your request status in My Requests tab"
     });
     setRequestDialogOpen(false);
     setRequestItems([]);
-    
     const tabsTrigger = document.querySelector('button[value="my-requests"]') as HTMLButtonElement;
     if (tabsTrigger) {
       tabsTrigger.click();
     }
-    
-    setRequestDetailsOpen(prev => ({...prev, [newRequestId]: true}));
-    
+    setRequestDetailsOpen(prev => ({
+      ...prev,
+      [newRequestId]: true
+    }));
     setTimeout(() => {
       setHighlightedRequestId(null);
     }, 5000);
   };
-  
   const userRequests = requests.filter(request => request.userId === "user1");
-  
   const sortedRequests = [...userRequests].sort((a, b) => {
     if (sortField === "requestDate") {
       const dateA = new Date(a.requestDate).getTime();
       const dateB = new Date(b.requestDate).getTime();
       return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
     } else {
-      const statusOrder = { pending: 1, approved: 2, ready: 3, rejected: 4 };
+      const statusOrder = {
+        pending: 1,
+        approved: 2,
+        ready: 3,
+        rejected: 4
+      };
       const statusA = statusOrder[a.status as keyof typeof statusOrder];
       const statusB = statusOrder[b.status as keyof typeof statusOrder];
       return sortDirection === "asc" ? statusA - statusB : statusB - statusA;
     }
   });
-  
   const toggleRequestDetails = (requestId: string) => {
     setRequestDetailsOpen(prev => ({
       ...prev,
       [requestId]: !prev[requestId]
     }));
   };
-  
   const toggleSort = (field: "requestDate" | "status") => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -137,7 +105,6 @@ const Supplies = () => {
       setSortDirection("desc");
     }
   };
-  
   const getStatusIcon = (status: Request["status"]) => {
     switch (status) {
       case "pending":
@@ -152,7 +119,6 @@ const Supplies = () => {
         return null;
     }
   };
-  
   const getStatusDetails = (status: Request["status"]) => {
     switch (status) {
       case "pending":
@@ -167,33 +133,19 @@ const Supplies = () => {
         return "";
     }
   };
-  
   const getStatusBadge = (status: Request["status"]) => {
-    return (
-      <Badge 
-        variant="outline" 
-        className={`flex items-center gap-1 ${
-          status === "approved" ? "bg-green-50 text-green-700 border-green-200" :
-          status === "ready" ? "bg-blue-50 text-blue-700 border-blue-200" :
-          status === "rejected" ? "bg-red-50 text-red-700 border-red-200" :
-          "bg-amber-50 text-amber-700 border-amber-200"
-        }`}
-      >
+    return <Badge variant="outline" className={`flex items-center gap-1 ${status === "approved" ? "bg-green-50 text-green-700 border-green-200" : status === "ready" ? "bg-blue-50 text-blue-700 border-blue-200" : status === "rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
         {getStatusIcon(status)}
         <span className="capitalize">{status}</span>
-      </Badge>
-    );
+      </Badge>;
   };
-
   const handleSwitchToAllSupplies = () => {
     const tabsTrigger = document.querySelector('button[value="all-supplies"]') as HTMLButtonElement;
     if (tabsTrigger) {
       tabsTrigger.click();
     }
   };
-
-  return (
-    <div className="container py-8 animate-fade-in">
+  return <div className="container py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Office Supplies</h1>
@@ -203,25 +155,17 @@ const Supplies = () => {
         </div>
         
         <div className="space-x-2 flex items-center">
-          {requestItems.length > 0 && (
-            <Button 
-              onClick={() => setRequestDialogOpen(true)}
-              className="relative"
-            >
+          {requestItems.length > 0 && <Button onClick={() => setRequestDialogOpen(true)} className="relative">
               <ShoppingCart className="h-4 w-4 mr-2" />
               View Request
               <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full">
                 {requestItems.length}
               </Badge>
-            </Button>
-          )}
+            </Button>}
           
           <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                New Request
-              </Button>
+              
             </DialogTrigger>
           </Dialog>
         </div>
@@ -237,45 +181,23 @@ const Supplies = () => {
           <div className="bg-accent/30 rounded-lg p-4 flex flex-col sm:flex-row gap-4 border border-accent">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search supplies"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-              {searchTerm && (
-                <button 
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                  onClick={() => setSearchTerm("")}
-                >
+              <Input placeholder="Search supplies" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9" />
+              {searchTerm && <button className="absolute right-3 top-1/2 transform -translate-y-1/2" onClick={() => setSearchTerm("")}>
                   <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
-              )}
+                </button>}
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant={categoryFilter === null ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setCategoryFilter(null)}
-              >
+              <Button variant={categoryFilter === null ? "secondary" : "outline"} size="sm" onClick={() => setCategoryFilter(null)}>
                 All
               </Button>
-              {categories.map(category => (
-                <Button
-                  key={category}
-                  variant={categoryFilter === category ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setCategoryFilter(category)}
-                >
+              {categories.map(category => <Button key={category} variant={categoryFilter === category ? "secondary" : "outline"} size="sm" onClick={() => setCategoryFilter(category)}>
                   {category}
-                </Button>
-              ))}
+                </Button>)}
             </div>
           </div>
           
-          {requestItems.length > 0 && (
-            <Alert className="bg-primary/10 border-primary/20">
+          {requestItems.length > 0 && <Alert className="bg-primary/10 border-primary/20">
               <AlertDescription className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-4 w-4" />
@@ -283,81 +205,46 @@ const Supplies = () => {
                     <strong>{requestItems.length}</strong> {requestItems.length === 1 ? 'item' : 'items'} in your request cart
                   </span>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => setRequestDialogOpen(true)}
-                >
+                <Button size="sm" onClick={() => setRequestDialogOpen(true)}>
                   View Request
                 </Button>
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
           
-          {filteredSupplies.length === 0 ? (
-            <div className="text-center py-12">
+          {filteredSupplies.length === 0 ? <div className="text-center py-12">
               <h3 className="text-lg font-medium">No supplies match your criteria</h3>
               <p className="text-muted-foreground mt-1">Try adjusting your filters</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => {
-                  setSearchTerm("");
-                  setCategoryFilter(null);
-                }}
-              >
+              <Button variant="outline" className="mt-4" onClick={() => {
+            setSearchTerm("");
+            setCategoryFilter(null);
+          }}>
                 Clear All Filters
               </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredSupplies.map((supply) => (
-                <SupplyCard
-                  key={supply.id}
-                  supply={supply}
-                  onRequest={handleRequestItem}
-                />
-              ))}
-            </div>
-          )}
+            </div> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredSupplies.map(supply => <SupplyCard key={supply.id} supply={supply} onRequest={handleRequestItem} />)}
+            </div>}
         </TabsContent>
         
         <TabsContent value="my-requests">
-          {userRequests.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg">
+          {userRequests.length === 0 ? <div className="text-center py-12 border rounded-lg">
               <h3 className="text-lg font-medium">No requests</h3>
               <p className="text-muted-foreground mt-1 mb-4">You haven't made any supply requests yet</p>
               <Button onClick={handleSwitchToAllSupplies}>
                 Browse Supplies
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
+            </div> : <div className="space-y-6">
               <div className="flex flex-wrap gap-3 items-center">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => toggleSort("requestDate")}
-                >
+                <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => toggleSort("requestDate")}>
                   <Calendar className="h-4 w-4" />
                   Date
-                  {sortField === "requestDate" && (
-                    sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                  )}
+                  {sortField === "requestDate" && (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                   {sortField !== "requestDate" && <ArrowUpDown className="h-3 w-3" />}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => toggleSort("status")}
-                >
+                <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => toggleSort("status")}>
                   <Info className="h-4 w-4" />
                   Status
-                  {sortField === "status" && (
-                    sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                  )}
+                  {sortField === "status" && (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                   {sortField !== "status" && <ArrowUpDown className="h-3 w-3" />}
                 </Button>
               </div>
@@ -373,14 +260,8 @@ const Supplies = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedRequests.map((request) => (
-                      <React.Fragment key={request.id}>
-                        <TableRow 
-                          className={`${
-                            highlightedRequestId === request.id ? "bg-primary/5" : ""
-                          } hover:cursor-pointer`}
-                          onClick={() => toggleRequestDetails(request.id)}
-                        >
+                    {sortedRequests.map(request => <React.Fragment key={request.id}>
+                        <TableRow className={`${highlightedRequestId === request.id ? "bg-primary/5" : ""} hover:cursor-pointer`} onClick={() => toggleRequestDetails(request.id)}>
                           <TableCell className="font-medium">
                             #{request.id.slice(-5)}
                           </TableCell>
@@ -393,25 +274,16 @@ const Supplies = () => {
                               <span>
                                 {request.items.length} {request.items.length === 1 ? 'item' : 'items'} requested
                               </span>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleRequestDetails(request.id);
-                                }}
-                              >
-                                {requestDetailsOpen[request.id] ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
+                              <Button variant="ghost" size="sm" onClick={e => {
+                          e.stopPropagation();
+                          toggleRequestDetails(request.id);
+                        }}>
+                                {requestDetailsOpen[request.id] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
-                        {requestDetailsOpen[request.id] && (
-                          <TableRow>
+                        {requestDetailsOpen[request.id] && <TableRow>
                             <TableCell colSpan={4} className="bg-muted/30 p-0">
                               <div className="px-4 py-3 space-y-4">
                                 <div className="flex items-start gap-2 text-sm bg-accent/20 p-3 rounded-md">
@@ -419,9 +291,7 @@ const Supplies = () => {
                                   <div>
                                     <p className="font-medium">Status: {request.status.charAt(0).toUpperCase() + request.status.slice(1)}</p>
                                     <p className="text-muted-foreground">{getStatusDetails(request.status)}</p>
-                                    {request.status === "ready" && (
-                                      <p className="text-blue-600 font-medium mt-1">Ready for pickup at Reception</p>
-                                    )}
+                                    {request.status === "ready" && <p className="text-blue-600 font-medium mt-1">Ready for pickup at Reception</p>}
                                   </div>
                                 </div>
                                 
@@ -433,63 +303,48 @@ const Supplies = () => {
                                     </p>
                                   </div>
                                   
-                                  {request.status !== "pending" && (
-                                    <div className="relative">
+                                  {request.status !== "pending" && <div className="relative">
                                       <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-green-500"></div>
                                       <p className="text-sm">
                                         <span className="text-muted-foreground">Approved on:</span> {new Date(new Date(request.requestDate).getTime() + 24 * 60 * 60 * 1000).toLocaleDateString()}
                                       </p>
-                                    </div>
-                                  )}
+                                    </div>}
                                   
-                                  {request.status === "ready" && (
-                                    <div className="relative">
+                                  {request.status === "ready" && <div className="relative">
                                       <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-blue-500"></div>
                                       <p className="text-sm">
                                         <span className="text-muted-foreground">Ready for pickup since:</span> {new Date(new Date(request.requestDate).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                                       </p>
-                                    </div>
-                                  )}
+                                    </div>}
                                 </div>
                                 
                                 <div>
                                   <h4 className="text-sm font-medium mb-2">Requested Items:</h4>
                                   <div className="grid gap-2">
                                     {request.items.map((item, index) => {
-                                      const supply = supplies.find(s => s.id === item.supplyId);
-                                      return (
-                                        <div key={index} className="flex items-center justify-between bg-background rounded-md p-2 text-sm">
+                              const supply = supplies.find(s => s.id === item.supplyId);
+                              return <div key={index} className="flex items-center justify-between bg-background rounded-md p-2 text-sm">
                                           <div className="flex items-center gap-3">
                                             <div className="h-8 w-8 bg-accent/20 rounded overflow-hidden">
-                                              {supply?.image && (
-                                                <img 
-                                                  src={supply.image} 
-                                                  alt={supply?.name} 
-                                                  className="h-full w-full object-cover"
-                                                />
-                                              )}
+                                              {supply?.image && <img src={supply.image} alt={supply?.name} className="h-full w-full object-cover" />}
                                             </div>
                                             <span>{supply?.name}</span>
                                           </div>
                                           <Badge variant="outline" className="bg-background">
                                             Qty: {item.quantity}
                                           </Badge>
-                                        </div>
-                                      );
-                                    })}
+                                        </div>;
+                            })}
                                   </div>
                                 </div>
                               </div>
                             </TableCell>
-                          </TableRow>
-                        )}
-                      </React.Fragment>
-                    ))}
+                          </TableRow>}
+                      </React.Fragment>)}
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          )}
+            </div>}
         </TabsContent>
       </Tabs>
       
@@ -501,15 +356,9 @@ const Supplies = () => {
               {requestItems.length > 0 ? "Your Supply Request" : "New Supply Request"}
             </DialogTitle>
           </DialogHeader>
-          <RequestForm 
-            onSubmit={handleSubmitRequest} 
-            initialItems={requestItems}
-            onUpdateItems={setRequestItems}
-          />
+          <RequestForm onSubmit={handleSubmitRequest} initialItems={requestItems} onUpdateItems={setRequestItems} />
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default Supplies;
