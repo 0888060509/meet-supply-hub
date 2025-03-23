@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -66,16 +67,21 @@ const TableRow = React.forwardRef<
 ))
 TableRow.displayName = "TableRow"
 
+interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
+  width?: string;
+}
+
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  TableHeadProps
+>(({ className, width, style, ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
+    style={{ width, ...style }}
     {...props}
   />
 ))

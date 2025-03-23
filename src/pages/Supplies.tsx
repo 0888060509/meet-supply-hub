@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { supplies, requests, Supply, Request } from "@/lib/data";
 import SupplyCard from "@/components/SupplyCard";
 import RequestForm from "@/components/RequestForm";
@@ -63,7 +62,6 @@ const Supplies = () => {
   
   const categories = Array.from(new Set(supplies.map(supply => supply.category)));
   
-  // Filter supplies based on search and category
   const filteredSupplies = supplies.filter(supply => {
     const matchesSearch = supply.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter ? supply.category === categoryFilter : true;
@@ -71,20 +69,16 @@ const Supplies = () => {
   });
   
   const handleRequestItem = (supplyId: string, quantity: number) => {
-    // Check if item already exists in cart
     const existingItemIndex = requestItems.findIndex(item => item.supplyId === supplyId);
     
     if (existingItemIndex >= 0) {
-      // Update quantity if item exists
       const updatedItems = [...requestItems];
       updatedItems[existingItemIndex].quantity += quantity;
       setRequestItems(updatedItems);
     } else {
-      // Add new item if it doesn't exist
       setRequestItems([...requestItems, { supplyId, quantity }]);
     }
     
-    // Show success toast
     const supply = supplies.find(s => s.id === supplyId);
     toast.success(`Added ${quantity} ${supply?.name}(s) to your request`, {
       description: `${requestItems.length + 1} item(s) in your request cart`
@@ -92,7 +86,6 @@ const Supplies = () => {
   };
   
   const handleSubmitRequest = (items: { supplyId: string; quantity: number }[], notes?: string) => {
-    // Highlight the new request in the list
     const newRequestId = `request${requests.length + 1}`;
     setHighlightedRequestId(newRequestId);
     
@@ -102,32 +95,26 @@ const Supplies = () => {
     setRequestDialogOpen(false);
     setRequestItems([]);
     
-    // Switch to My Requests tab
     const tabsTrigger = document.querySelector('button[value="my-requests"]') as HTMLButtonElement;
     if (tabsTrigger) {
       tabsTrigger.click();
     }
     
-    // Auto-expand the new request details
     setRequestDetailsOpen(prev => ({...prev, [newRequestId]: true}));
     
-    // Clear the highlight after 5 seconds
     setTimeout(() => {
       setHighlightedRequestId(null);
     }, 5000);
   };
   
-  // Mock user requests for My Requests tab
   const userRequests = requests.filter(request => request.userId === "user1");
   
-  // Sort the requests
   const sortedRequests = [...userRequests].sort((a, b) => {
     if (sortField === "requestDate") {
       const dateA = new Date(a.requestDate).getTime();
       const dateB = new Date(b.requestDate).getTime();
       return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
     } else {
-      // Sort by status: pending, approved, ready, rejected
       const statusOrder = { pending: 1, approved: 2, ready: 3, rejected: 4 };
       const statusA = statusOrder[a.status as keyof typeof statusOrder];
       const statusB = statusOrder[b.status as keyof typeof statusOrder];
@@ -198,7 +185,6 @@ const Supplies = () => {
     );
   };
 
-  // Fix for the document.querySelector error
   const handleSwitchToAllSupplies = () => {
     const tabsTrigger = document.querySelector('button[value="all-supplies"]') as HTMLButtonElement;
     if (tabsTrigger) {
@@ -248,7 +234,6 @@ const Supplies = () => {
         </TabsList>
         
         <TabsContent value="all-supplies" className="space-y-6">
-          {/* Filters */}
           <div className="bg-accent/30 rounded-lg p-4 flex flex-col sm:flex-row gap-4 border border-accent">
             <div className="relative flex-grow">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -289,7 +274,6 @@ const Supplies = () => {
             </div>
           </div>
           
-          {/* Request Cart Summary (if items exist) */}
           {requestItems.length > 0 && (
             <Alert className="bg-primary/10 border-primary/20">
               <AlertDescription className="flex justify-between items-center">
@@ -309,7 +293,6 @@ const Supplies = () => {
             </Alert>
           )}
           
-          {/* Supplies Grid */}
           {filteredSupplies.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium">No supplies match your criteria</h3>
@@ -349,7 +332,6 @@ const Supplies = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Sort Controls */}
               <div className="flex flex-wrap gap-3 items-center">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
                 <Button 
@@ -380,7 +362,6 @@ const Supplies = () => {
                 </Button>
               </div>
               
-              {/* Requests List */}
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
@@ -416,7 +397,7 @@ const Supplies = () => {
                                 variant="ghost" 
                                 size="sm"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Prevent row click
+                                  e.stopPropagation();
                                   toggleRequestDetails(request.id);
                                 }}
                               >
@@ -433,7 +414,6 @@ const Supplies = () => {
                           <TableRow>
                             <TableCell colSpan={4} className="bg-muted/30 p-0">
                               <div className="px-4 py-3 space-y-4">
-                                {/* Status Details */}
                                 <div className="flex items-start gap-2 text-sm bg-accent/20 p-3 rounded-md">
                                   {getStatusIcon(request.status)}
                                   <div>
@@ -445,7 +425,6 @@ const Supplies = () => {
                                   </div>
                                 </div>
                                 
-                                {/* Request Timeline */}
                                 <div className="border-l-2 border-muted pl-4 py-2 space-y-3">
                                   <div className="relative">
                                     <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-primary"></div>
@@ -473,7 +452,6 @@ const Supplies = () => {
                                   )}
                                 </div>
                                 
-                                {/* Requested Items */}
                                 <div>
                                   <h4 className="text-sm font-medium mb-2">Requested Items:</h4>
                                   <div className="grid gap-2">
@@ -515,7 +493,6 @@ const Supplies = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Request Dialog */}
       <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
