@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle } from "lucide-react";
+import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { bookings, rooms, getUserBookings, getUserRequests, requests, supplies } from "@/lib/data";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { QuickBookingForm } from "@/components/QuickBookingForm";
+import { QuickRequestForm } from "@/components/QuickRequestForm";
 
 const Dashboard = () => {
   const { user, isAdmin } = useAuth();
@@ -18,11 +21,18 @@ const Dashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [urgentAlerts, setUrgentAlerts] = useState([]);
 
+  console.log("Current user:", user);
+  console.log("All bookings:", bookings);
+  console.log("All requests:", requests);
+
   // Fetch user data on component mount
   useEffect(() => {
     if (user) {
+      console.log("Fetching data for user:", user.id);
+      
       // Get upcoming bookings for the user
       const userBookings = getUserBookings(user.id);
+      console.log("User bookings:", userBookings);
       
       // Sort bookings by date and time, and take the next 3
       const upcoming = userBookings
@@ -38,11 +48,14 @@ const Dashboard = () => {
         })
         .slice(0, 3);
       
+      console.log("Upcoming bookings:", upcoming);
       setUpcomingBookings(upcoming);
       
       // Get pending requests for the user
       const userRequests = getUserRequests(user.id);
+      console.log("User requests:", userRequests);
       const pending = userRequests.filter(req => req.status === "pending");
+      console.log("Pending requests:", pending);
       setPendingRequests(pending);
       
       // Check if there are any urgent alerts (e.g., meetings starting soon)
@@ -62,6 +75,8 @@ const Dashboard = () => {
         // Alert if meeting is starting in 30 minutes or less
         return diffMinutes > 0 && diffMinutes <= 30;
       });
+      
+      console.log("Urgent meetings:", upcomingMeetings);
       
       if (upcomingMeetings.length > 0) {
         setUrgentAlerts(upcomingMeetings.map(meeting => ({
@@ -270,9 +285,9 @@ const Dashboard = () => {
         </Card>
       </div>
       
-      {/* Quick Links Section */}
+      {/* Quick Links Section with Modal Dialogs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Room Booking Card */}
+        {/* Room Booking Card with Quick Booking Dialog */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -287,14 +302,30 @@ const Dashboard = () => {
               Browse available rooms, check their amenities, and book the perfect space for your meetings.
             </p>
           </CardContent>
-          <CardFooter>
-            <Button asChild className="w-full">
-              <Link to="/rooms">Book a Room</Link>
+          <CardFooter className="flex gap-2 justify-between">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex-1">
+                  <Plus className="h-4 w-4 mr-2" /> Quick Book
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Quick Room Booking</DialogTitle>
+                  <DialogDescription>
+                    Book a room without leaving your dashboard. Fill out the details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <QuickBookingForm />
+              </DialogContent>
+            </Dialog>
+            <Button asChild className="flex-1">
+              <Link to="/rooms">All Rooms</Link>
             </Button>
           </CardFooter>
         </Card>
         
-        {/* Office Supplies Card */}
+        {/* Office Supplies Card with Quick Request Dialog */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -309,14 +340,30 @@ const Dashboard = () => {
               Browse the inventory, request supplies, and track your orders all in one place.
             </p>
           </CardContent>
-          <CardFooter>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/supplies">Request Supplies</Link>
+          <CardFooter className="flex gap-2 justify-between">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex-1">
+                  <Plus className="h-4 w-4 mr-2" /> Quick Request
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Quick Supply Request</DialogTitle>
+                  <DialogDescription>
+                    Request office supplies without leaving your dashboard.
+                  </DialogDescription>
+                </DialogHeader>
+                <QuickRequestForm />
+              </DialogContent>
+            </Dialog>
+            <Button asChild variant="outline" className="flex-1">
+              <Link to="/supplies">All Supplies</Link>
             </Button>
           </CardFooter>
         </Card>
         
-        {/* My Bookings Card */}
+        {/* My Calendar Card */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
