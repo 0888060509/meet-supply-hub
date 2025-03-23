@@ -3,23 +3,277 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Calendar, Package, Users, Settings, FileText } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { bookings, rooms, getUserBookings, getUserRequests, requests, supplies } from "@/lib/data";
+import { format } from "date-fns";
 
 const Dashboard = () => {
   const { user, isAdmin } = useAuth();
+  const [upcomingBookings, setUpcomingBookings] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [hasNotifications, setHasNotifications] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [urgentAlerts, setUrgentAlerts] = useState([]);
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    if (user) {
+      // Get upcoming bookings for the user
+      const userBookings = getUserBookings(user.id);
+      
+      // Sort bookings by date and time, and take the next 3
+      const upcoming = userBookings
+        .sort((a, b) => {
+          // First compare dates
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          if (dateA > dateB) return 1;
+          if (dateA < dateB) return -1;
+          
+          // If dates are equal, compare times
+          return a.startTime.localeCompare(b.startTime);
+        })
+        .slice(0, 3);
+      
+      setUpcomingBookings(upcoming);
+      
+      // Get pending requests for the user
+      const userRequests = getUserRequests(user.id);
+      const pending = userRequests.filter(req => req.status === "pending");
+      setPendingRequests(pending);
+      
+      // Check if there are any urgent alerts (e.g., meetings starting soon)
+      const today = new Date();
+      const todayStr = format(today, "yyyy-MM-dd");
+      
+      const upcomingMeetings = userBookings.filter(booking => {
+        if (booking.date !== todayStr) return false;
+        
+        const [bookingHour, bookingMinute] = booking.startTime.split(':').map(Number);
+        const bookingTime = new Date(today);
+        bookingTime.setHours(bookingHour, bookingMinute);
+        
+        // Calculate time difference in minutes
+        const diffMinutes = Math.round((bookingTime.getTime() - today.getTime()) / (1000 * 60));
+        
+        // Alert if meeting is starting in 30 minutes or less
+        return diffMinutes > 0 && diffMinutes <= 30;
+      });
+      
+      if (upcomingMeetings.length > 0) {
+        setUrgentAlerts(upcomingMeetings.map(meeting => ({
+          id: meeting.id,
+          message: `Your meeting "${meeting.title}" starts in less than 30 minutes.`,
+          type: "meeting"
+        })));
+      }
+      
+      // Set notification indicator
+      setHasNotifications(pending.length > 0 || upcomingMeetings.length > 0);
+    }
+  }, [user]);
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
   
+  const dismissAlert = (alertId) => {
+    setUrgentAlerts(prev => prev.filter(alert => alert.id !== alertId));
+  };
+
   return (
     <div className="container py-8 animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, {user?.name}! Manage your workspace from here.
-        </p>
+      {/* Urgent alerts section */}
+      {urgentAlerts.length > 0 && (
+        <div className="mb-6 space-y-2">
+          {urgentAlerts.map(alert => (
+            <Alert key={alert.id} className="border-amber-400 bg-amber-50 animate-fade-in">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="flex justify-between items-center">
+                <span>{alert.message}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => dismissAlert(alert.id)}
+                >
+                  Dismiss
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+      
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome back, {user?.name}! Here's your workspace overview.
+          </p>
+        </div>
+        
+        {/* Notifications bell */}
+        <div className="relative">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative"
+            onClick={toggleNotifications}
+          >
+            <Bell className="h-5 w-5" />
+            {hasNotifications && (
+              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+            )}
+          </Button>
+          
+          {/* Notifications dropdown */}
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-80 z-50 border rounded-md bg-background shadow-lg animate-fade-in">
+              <div className="p-3 border-b">
+                <h3 className="font-medium">Notifications</h3>
+              </div>
+              <div className="max-h-64 overflow-y-auto p-2">
+                {pendingRequests.length > 0 ? (
+                  pendingRequests.map(request => (
+                    <div key={request.id} className="p-2 hover:bg-muted rounded-md">
+                      <p className="text-sm">
+                        Your request for {request.items.length} item(s) is pending approval.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Requested on {request.requestDate}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-center p-4 text-muted-foreground">No new notifications</p>
+                )}
+              </div>
+              <div className="p-2 border-t text-center">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/supplies?tab=requests">View all requests</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
+      {/* Personalized Information Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Upcoming Bookings Card */}
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" /> Upcoming Bookings
+              </div>
+              <Badge variant="outline" className="font-normal">
+                <Clock className="h-3 w-3 mr-1" /> Today & Upcoming
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {upcomingBookings.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingBookings.map(booking => {
+                  const room = rooms.find(r => r.id === booking.roomId);
+                  return (
+                    <div key={booking.id} className="flex items-start p-3 rounded-md hover:bg-muted transition-colors hover-scale">
+                      <div className="h-10 w-10 bg-primary/10 rounded-md flex items-center justify-center mr-3">
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-base">{booking.title}</h4>
+                        <p className="text-sm text-muted-foreground">{room?.name}</p>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <span>{booking.date}</span>
+                          <span className="mx-1">•</span>
+                          <span>{booking.startTime} - {booking.endTime}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground">No upcoming bookings</p>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button variant="outline" className="w-full group" asChild>
+              <Link to="/rooms?tab=bookings">
+                View All Bookings
+                <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        {/* Pending Requests Card */}
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" /> Supply Requests
+              </div>
+              <Badge variant="outline" className="font-normal">
+                Status Updates
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pendingRequests.length > 0 ? (
+              <div className="space-y-3">
+                {pendingRequests.map(request => {
+                  // Get supply names for display
+                  const itemNames = request.items.map(item => {
+                    const supply = supplies.find(s => s.id === item.supplyId);
+                    return `${item.quantity}x ${supply?.name || 'Unknown item'}`;
+                  });
+                  
+                  return (
+                    <div key={request.id} className="flex items-start p-3 rounded-md hover:bg-muted transition-colors hover-scale">
+                      <div className="h-10 w-10 bg-primary/10 rounded-md flex items-center justify-center mr-3">
+                        <Package className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-base">Request #{request.id.substring(request.id.length - 4)}</h4>
+                          <Badge className="bg-amber-500">{request.status}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{itemNames.join(', ')}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Submitted on {request.requestDate}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground">No pending requests</p>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button variant="outline" className="w-full group" asChild>
+              <Link to="/supplies?tab=requests">
+                View All Requests
+                <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+      
+      {/* Quick Links Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Room Booking Card */}
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" /> Room Booking
@@ -40,30 +294,8 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
         
-        {/* My Bookings Card */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" /> My Bookings
-            </CardTitle>
-            <CardDescription>
-              View and manage your upcoming room bookings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Check your scheduled meetings, make changes, or cancel bookings when needed.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/rooms?tab=bookings">View My Bookings</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-        
         {/* Office Supplies Card */}
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" /> Office Supplies
@@ -80,6 +312,28 @@ const Dashboard = () => {
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
               <Link to="/supplies">Request Supplies</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        {/* My Bookings Card */}
+        <Card className="hover:shadow-md transition-shadow hover-scale">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" /> My Calendar
+            </CardTitle>
+            <CardDescription>
+              View your personal booking calendar
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              See your day, week, or month at a glance with all your meeting room bookings in one place.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/rooms?tab=calendar">View Calendar</Link>
             </Button>
           </CardFooter>
         </Card>
