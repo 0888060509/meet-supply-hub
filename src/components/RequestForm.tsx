@@ -1,173 +1,176 @@
 
-import { useState } from "react";
-import { Supply, supplies } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { supplies } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import { toast } from "sonner";
-import { Plus, Trash2, Send } from "lucide-react";
-
-interface RequestItem {
-  supplyId: string;
-  quantity: number;
-}
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, MinusCircle, PlusCircle } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface RequestFormProps {
-  onSubmit: (items: RequestItem[]) => void;
+  onSubmit: (items: { supplyId: string; quantity: number }[], notes?: string) => void;
+  initialItems?: { supplyId: string; quantity: number }[];
+  onUpdateItems?: (items: { supplyId: string; quantity: number }[]) => void;
 }
 
-const RequestForm = ({ onSubmit }: RequestFormProps) => {
-  const [selectedSupplyId, setSelectedSupplyId] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(1);
-  const [items, setItems] = useState<RequestItem[]>([]);
-  
-  const availableSupplies = supplies.filter(
-    supply => supply.inStock > 0 && 
-    !items.some(item => item.supplyId === supply.id)
-  );
-  
-  const selectedSupply = supplies.find(supply => supply.id === selectedSupplyId);
-  
-  const handleAddItem = () => {
-    if (!selectedSupplyId || quantity <= 0) {
-      toast.error("Please select an item and quantity");
-      return;
-    }
+const RequestForm = ({ 
+  onSubmit, 
+  initialItems = [], 
+  onUpdateItems 
+}: RequestFormProps) => {
+  const [items, setItems] = useState<{ supplyId: string; quantity: number }[]>(initialItems);
+  const [notes, setNotes] = useState("");
+
+  // Update local items whenever initialItems changes
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  const handleQuantityChange = (index: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
     
-    if (selectedSupply && quantity > selectedSupply.inStock) {
-      toast.error(`Only ${selectedSupply.inStock} units available`);
-      return;
-    }
+    const supply = supplies.find(s => s.id === items[index].supplyId);
+    if (supply && newQuantity > supply.inStock) return;
     
-    setItems([...items, { supplyId: selectedSupplyId, quantity }]);
-    setSelectedSupplyId("");
-    setQuantity(1);
+    const updatedItems = [...items];
+    updatedItems[index].quantity = newQuantity;
+    setItems(updatedItems);
+    
+    // Notify parent component of changes if callback exists
+    if (onUpdateItems) {
+      onUpdateItems(updatedItems);
+    }
   };
-  
+
   const handleRemoveItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
-  
-  const handleSubmitRequest = () => {
-    if (items.length === 0) {
-      toast.error("Please add at least one item");
-      return;
-    }
+    const updatedItems = items.filter((_, i) => i !== index);
+    setItems(updatedItems);
     
-    onSubmit(items);
-    setItems([]);
+    // Notify parent component of changes if callback exists
+    if (onUpdateItems) {
+      onUpdateItems(updatedItems);
+    }
   };
-  
-  const getSupplyById = (id: string): Supply | undefined => {
-    return supplies.find(supply => supply.id === id);
+
+  const handleSubmit = () => {
+    onSubmit(items, notes);
   };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_auto] gap-4 items-end">
-        <div>
-          <Label htmlFor="supply">Item</Label>
-          <Select 
-            value={selectedSupplyId} 
-            onValueChange={setSelectedSupplyId}
-          >
-            <SelectTrigger id="supply">
-              <SelectValue placeholder="Select an item" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableSupplies.map((supply) => (
-                <SelectItem key={supply.id} value={supply.id}>
-                  {supply.name} ({supply.inStock} available)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {items.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-muted-foreground">
+            Your request is empty. Add items from the supplies page.
+          </p>
         </div>
-        
+      ) : (
+        <ScrollArea className={cn("pr-4", items.length > 3 ? "max-h-[300px]" : "")}>
+          <div className="space-y-4">
+            {items.map((item, index) => {
+              const supply = supplies.find(s => s.id === item.supplyId);
+              return (
+                <div key={index} className="flex items-center justify-between border p-3 rounded-md">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-accent/20 rounded overflow-hidden">
+                      {supply?.image && (
+                        <img 
+                          src={supply.image} 
+                          alt={supply?.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{supply?.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {supply?.category} · {supply?.inStock} available
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => handleQuantityChange(index, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                      >
+                        <MinusCircle className="h-4 w-4" />
+                      </Button>
+                      
+                      <Input
+                        type="number"
+                        min={1}
+                        max={supply?.inStock || 999}
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value)) {
+                            handleQuantityChange(index, value);
+                          }
+                        }}
+                        className="w-16 h-8 text-center mx-1"
+                      />
+                      
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => handleQuantityChange(index, item.quantity + 1)}
+                        disabled={item.quantity >= (supply?.inStock || 999)}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRemoveItem(index)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </ScrollArea>
+      )}
+      
+      <Separator />
+      
+      <div className="space-y-4">
         <div>
-          <Label htmlFor="quantity">Quantity</Label>
-          <Input
-            id="quantity"
-            type="number"
-            min={1}
-            max={selectedSupply?.inStock || 1}
-            value={quantity}
-            onChange={(e) => {
-              const value = parseInt(e.target.value);
-              if (!isNaN(value) && value > 0) {
-                setQuantity(Math.min(value, selectedSupply?.inStock || 1));
-              }
-            }}
+          <Label htmlFor="notes">Additional Notes (Optional)</Label>
+          <Textarea
+            id="notes"
+            placeholder="Add any additional information or special requirements"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="h-20"
           />
         </div>
         
-        <Button 
-          onClick={handleAddItem}
-          disabled={!selectedSupplyId || quantity <= 0}
-          className="flex-shrink-0"
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          className="w-full"
+          disabled={items.length === 0}
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Add
+          Submit Request
         </Button>
       </div>
-      
-      {items.length > 0 && (
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead className="w-[80px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item, index) => {
-                const supply = getSupplyById(item.supplyId);
-                return (
-                  <TableRow key={index}>
-                    <TableCell>{supply?.name}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveItem(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-      
-      <Button 
-        className="w-full" 
-        onClick={handleSubmitRequest}
-        disabled={items.length === 0}
-      >
-        <Send className="h-4 w-4 mr-2" />
-        Submit Request
-      </Button>
     </div>
   );
 };
