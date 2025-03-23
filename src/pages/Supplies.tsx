@@ -36,15 +36,30 @@ import {
   Clock, 
   CheckCircle2, 
   Package2,
-  ShoppingCart
+  ShoppingCart,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  ArrowUpDown,
+  Info
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const Supplies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [requestItems, setRequestItems] = useState<{ supplyId: string; quantity: number }[]>([]);
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<"requestDate" | "status">("requestDate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [requestDetailsOpen, setRequestDetailsOpen] = useState<{[key: string]: boolean}>({});
+  const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null);
   
   const categories = Array.from(new Set(supplies.map(supply => supply.category)));
   
@@ -76,7 +91,11 @@ const Supplies = () => {
     });
   };
   
-  const handleSubmitRequest = (items: { supplyId: string; quantity: number }[]) => {
+  const handleSubmitRequest = (items: { supplyId: string; quantity: number }[], notes?: string) => {
+    // Highlight the new request in the list
+    const newRequestId = `request${requests.length + 1}`;
+    setHighlightedRequestId(newRequestId);
+    
     toast.success("Supply request submitted successfully!", {
       description: "You can track your request status in My Requests tab"
     });
@@ -88,10 +107,49 @@ const Supplies = () => {
     if (tabsTrigger) {
       tabsTrigger.click();
     }
+    
+    // Auto-expand the new request details
+    setRequestDetailsOpen(prev => ({...prev, [newRequestId]: true}));
+    
+    // Clear the highlight after 5 seconds
+    setTimeout(() => {
+      setHighlightedRequestId(null);
+    }, 5000);
   };
   
   // Mock user requests for My Requests tab
   const userRequests = requests.filter(request => request.userId === "user1");
+  
+  // Sort the requests
+  const sortedRequests = [...userRequests].sort((a, b) => {
+    if (sortField === "requestDate") {
+      const dateA = new Date(a.requestDate).getTime();
+      const dateB = new Date(b.requestDate).getTime();
+      return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
+    } else {
+      // Sort by status: pending, approved, ready, rejected
+      const statusOrder = { pending: 1, approved: 2, ready: 3, rejected: 4 };
+      const statusA = statusOrder[a.status as keyof typeof statusOrder];
+      const statusB = statusOrder[b.status as keyof typeof statusOrder];
+      return sortDirection === "asc" ? statusA - statusB : statusB - statusA;
+    }
+  });
+  
+  const toggleRequestDetails = (requestId: string) => {
+    setRequestDetailsOpen(prev => ({
+      ...prev,
+      [requestId]: !prev[requestId]
+    }));
+  };
+  
+  const toggleSort = (field: "requestDate" | "status") => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("desc");
+    }
+  };
   
   const getStatusIcon = (status: Request["status"]) => {
     switch (status) {
@@ -106,6 +164,38 @@ const Supplies = () => {
       default:
         return null;
     }
+  };
+  
+  const getStatusDetails = (status: Request["status"]) => {
+    switch (status) {
+      case "pending":
+        return "Your request is being reviewed by the office manager.";
+      case "approved":
+        return "Your request has been approved and is being prepared.";
+      case "ready":
+        return "Your items are ready for pickup at the reception desk.";
+      case "rejected":
+        return "Your request couldn't be fulfilled at this time.";
+      default:
+        return "";
+    }
+  };
+  
+  const getStatusBadge = (status: Request["status"]) => {
+    return (
+      <Badge 
+        variant="outline" 
+        className={`flex items-center gap-1 ${
+          status === "approved" ? "bg-green-50 text-green-700 border-green-200" :
+          status === "ready" ? "bg-blue-50 text-blue-700 border-blue-200" :
+          status === "rejected" ? "bg-red-50 text-red-700 border-red-200" :
+          "bg-amber-50 text-amber-700 border-amber-200"
+        }`}
+      >
+        {getStatusIcon(status)}
+        <span className="capitalize">{status}</span>
+      </Badge>
+    );
   };
 
   // Fix for the document.querySelector error
@@ -258,52 +348,168 @@ const Supplies = () => {
               </Button>
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Request ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {userRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-medium">
-                        #{request.id.slice(-5)}
-                      </TableCell>
-                      <TableCell>{request.requestDate}</TableCell>
-                      <TableCell>
-                        {request.items.map((item, index) => {
-                          const supply = supplies.find(s => s.id === item.supplyId);
-                          return (
-                            <div key={index} className="flex items-center gap-1 text-sm">
-                              <span>{item.quantity}x</span>
-                              <span>{supply?.name}</span>
-                            </div>
-                          );
-                        })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={`flex items-center gap-1 ${
-                            request.status === "approved" ? "bg-green-50" :
-                            request.status === "ready" ? "bg-blue-50" :
-                            request.status === "rejected" ? "bg-red-50" :
-                            "bg-amber-50"
-                          }`}
-                        >
-                          {getStatusIcon(request.status)}
-                          <span className="capitalize">{request.status}</span>
-                        </Badge>
-                      </TableCell>
+            <div className="space-y-6">
+              {/* Sort Controls */}
+              <div className="flex flex-wrap gap-3 items-center">
+                <span className="text-sm text-muted-foreground">Sort by:</span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => toggleSort("requestDate")}
+                >
+                  <Calendar className="h-4 w-4" />
+                  Date
+                  {sortField === "requestDate" && (
+                    sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                  )}
+                  {sortField !== "requestDate" && <ArrowUpDown className="h-3 w-3" />}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => toggleSort("status")}
+                >
+                  <Info className="h-4 w-4" />
+                  Status
+                  {sortField === "status" && (
+                    sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                  )}
+                  {sortField !== "status" && <ArrowUpDown className="h-3 w-3" />}
+                </Button>
+              </div>
+              
+              {/* Requests List */}
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead width="15%">Request ID</TableHead>
+                      <TableHead width="15%">Date</TableHead>
+                      <TableHead width="15%">Status</TableHead>
+                      <TableHead width="55%">Summary</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedRequests.map((request) => (
+                      <React.Fragment key={request.id}>
+                        <TableRow 
+                          className={`${
+                            highlightedRequestId === request.id ? "bg-primary/5" : ""
+                          } hover:cursor-pointer`}
+                          onClick={() => toggleRequestDetails(request.id)}
+                        >
+                          <TableCell className="font-medium">
+                            #{request.id.slice(-5)}
+                          </TableCell>
+                          <TableCell>{request.requestDate}</TableCell>
+                          <TableCell>
+                            {getStatusBadge(request.status)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-between items-center">
+                              <span>
+                                {request.items.length} {request.items.length === 1 ? 'item' : 'items'} requested
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent row click
+                                  toggleRequestDetails(request.id);
+                                }}
+                              >
+                                {requestDetailsOpen[request.id] ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {requestDetailsOpen[request.id] && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="bg-muted/30 p-0">
+                              <div className="px-4 py-3 space-y-4">
+                                {/* Status Details */}
+                                <div className="flex items-start gap-2 text-sm bg-accent/20 p-3 rounded-md">
+                                  {getStatusIcon(request.status)}
+                                  <div>
+                                    <p className="font-medium">Status: {request.status.charAt(0).toUpperCase() + request.status.slice(1)}</p>
+                                    <p className="text-muted-foreground">{getStatusDetails(request.status)}</p>
+                                    {request.status === "ready" && (
+                                      <p className="text-blue-600 font-medium mt-1">Ready for pickup at Reception</p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Request Timeline */}
+                                <div className="border-l-2 border-muted pl-4 py-2 space-y-3">
+                                  <div className="relative">
+                                    <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-primary"></div>
+                                    <p className="text-sm">
+                                      <span className="text-muted-foreground">Requested on:</span> {request.requestDate}
+                                    </p>
+                                  </div>
+                                  
+                                  {request.status !== "pending" && (
+                                    <div className="relative">
+                                      <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-green-500"></div>
+                                      <p className="text-sm">
+                                        <span className="text-muted-foreground">Approved on:</span> {new Date(new Date(request.requestDate).getTime() + 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {request.status === "ready" && (
+                                    <div className="relative">
+                                      <div className="absolute -left-[1.15rem] mt-1 w-2 h-2 rounded-full bg-blue-500"></div>
+                                      <p className="text-sm">
+                                        <span className="text-muted-foreground">Ready for pickup since:</span> {new Date(new Date(request.requestDate).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Requested Items */}
+                                <div>
+                                  <h4 className="text-sm font-medium mb-2">Requested Items:</h4>
+                                  <div className="grid gap-2">
+                                    {request.items.map((item, index) => {
+                                      const supply = supplies.find(s => s.id === item.supplyId);
+                                      return (
+                                        <div key={index} className="flex items-center justify-between bg-background rounded-md p-2 text-sm">
+                                          <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-accent/20 rounded overflow-hidden">
+                                              {supply?.image && (
+                                                <img 
+                                                  src={supply.image} 
+                                                  alt={supply?.name} 
+                                                  className="h-full w-full object-cover"
+                                                />
+                                              )}
+                                            </div>
+                                            <span>{supply?.name}</span>
+                                          </div>
+                                          <Badge variant="outline" className="bg-background">
+                                            Qty: {item.quantity}
+                                          </Badge>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </TabsContent>
