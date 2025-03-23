@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { rooms, bookings, Room, Booking } from "@/lib/data";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -10,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Search, X, Info } from "lucide-react";
+import { Calendar, MapPin, Search, X, Info, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 const RoomBooking = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -22,7 +24,7 @@ const RoomBooking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [capacityFilter, setCapacityFilter] = useState("");
   const [equipmentFilter, setEquipmentFilter] = useState("");
-  const [activeView, setActiveView] = useState<"grid" | "timeline">("timeline");
+  const [activeView, setActiveView] = useState<"timeline">("timeline");
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -31,6 +33,7 @@ const RoomBooking = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
   const equipmentOptions = Array.from(new Set(rooms.flatMap(room => room.equipment)));
+
   const handleBookNow = (roomId: string) => {
     const room = rooms.find(r => r.id === roomId);
     if (room) {
@@ -39,11 +42,13 @@ const RoomBooking = () => {
       setConfirmationOpen(false);
     }
   };
+
   const handleBookingData = (bookingData: BookingFormData) => {
     setPendingBooking(bookingData);
     setBookingOpen(false);
     setConfirmationOpen(true);
   };
+
   const handleConfirmBooking = () => {
     if (pendingBooking) {
       toast.success("Room booked successfully!");
@@ -55,15 +60,18 @@ const RoomBooking = () => {
       navigate(`${location.pathname}?${newSearchParams.toString()}`);
     }
   };
+
   const handleCancelBooking = (bookingId: string) => {
     toast.success("Booking cancelled successfully");
     setCancelDialogOpen(false);
     setBookingToCancel(null);
   };
+
   const handleCancelClick = (bookingId: string) => {
     setBookingToCancel(bookingId);
     setCancelDialogOpen(true);
   };
+
   const confirmCancelBooking = () => {
     if (bookingToCancel) {
       handleCancelBooking(bookingToCancel);
@@ -71,6 +79,7 @@ const RoomBooking = () => {
       setBookingToCancel(null);
     }
   };
+
   const handleTimeSlotSelect = (roomId: string, date: Date, startTime: string, endTime: string) => {
     const room = rooms.find(r => r.id === roomId);
     if (room) {
@@ -90,19 +99,23 @@ const RoomBooking = () => {
       setBookingOpen(true);
     }
   };
+
   const handleTabChange = (value: "rooms" | "bookings") => {
     setActiveTab(value);
     const newSearchParams = new URLSearchParams(location.search);
     newSearchParams.set('tab', value);
     navigate(`${location.pathname}?${newSearchParams.toString()}`);
   };
+
   const filteredRooms = rooms.filter(room => {
     const matchesSearch = room.name.toLowerCase().includes(searchTerm.toLowerCase()) || room.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCapacity = capacityFilter && capacityFilter !== "any-capacity" ? room.capacity >= parseInt(capacityFilter) : true;
     const matchesEquipment = equipmentFilter && equipmentFilter !== "any-equipment" ? room.equipment.includes(equipmentFilter) : true;
     return matchesSearch && matchesCapacity && matchesEquipment;
   });
+
   const userBookings = bookings.filter(booking => booking.userId === "user1");
+
   return <div className="h-[calc(100vh-4rem)] w-full bg-background">
       <div className="container py-6 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -129,41 +142,42 @@ const RoomBooking = () => {
         </Tabs>
         
         {activeTab === "rooms" ? <>
-            
-            
-            
-            
-            {activeView === "grid" ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRooms.map(room => <div key={room.id} className="relative">
-                    <RoomCard room={room} onBookNow={handleBookNow} />
-                    <Button variant="outline" size="sm" className="absolute top-4 right-4 bg-white/90 hover:bg-white" asChild>
-                      <Link to={`/rooms/${room.id}`}>
-                        <Info className="h-4 w-4 mr-1" />
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>)}
-              </div> : <div>
-                <TimelineView rooms={filteredRooms} bookings={bookings} onSelectTimeSlot={handleTimeSlotSelect} />
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-                  {filteredRooms.map(room => <div key={room.id} className="flex justify-between items-center p-3 border rounded-md">
+            <div>
+              <TimelineView 
+                rooms={filteredRooms} 
+                bookings={bookings} 
+                onSelectTimeSlot={handleTimeSlotSelect} 
+              />
+              
+              {/* Enhanced Room List with Details Link */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 mb-4">
+                {filteredRooms.map(room => (
+                  <div key={room.id} className="flex flex-col p-4 border rounded-md bg-white hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-medium">{room.name}</p>
-                        <p className="text-xs text-muted-foreground">{room.location}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {room.location}
+                        </p>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/rooms/${room.id}`}>
-                            <Info className="h-3 w-3" />
-                          </Link>
-                        </Button>
-                        <Button size="sm" onClick={() => handleBookNow(room.id)}>
-                          Book
-                        </Button>
-                      </div>
-                    </div>)}
-                </div>
-              </div>}
+                      <Button size="sm" variant="outline" onClick={() => handleBookNow(room.id)}>
+                        Book
+                      </Button>
+                    </div>
+                    <div className="mt-auto pt-2 flex justify-between items-center">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to={`/rooms/${room.id}`} className="flex items-center gap-1 text-primary hover:text-primary/80">
+                          <Info className="h-3.5 w-3.5" />
+                          <span>Details</span>
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </> : <div className="animate-fade-in">
             <div className="bg-white rounded-lg border shadow-sm">
               {userBookings.length === 0 ? <div className="p-8 text-center text-muted-foreground">
@@ -238,4 +252,5 @@ const RoomBooking = () => {
       </AlertDialog>
     </div>;
 };
+
 export default RoomBooking;
