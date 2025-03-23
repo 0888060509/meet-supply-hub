@@ -1,4 +1,3 @@
-
 export type Room = {
   id: string;
   name: string;
@@ -89,6 +88,42 @@ export const bookings: Booking[] = [
     startTime: "11:00",
     endTime: "12:00",
     title: "Team Sync"
+  },
+  {
+    id: "booking3",
+    roomId: "room3",
+    userId: "user1",
+    date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startTime: "14:00",
+    endTime: "15:00",
+    title: "Sprint Planning"
+  },
+  {
+    id: "booking4",
+    roomId: "room4",
+    userId: "user1",
+    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startTime: "10:00",
+    endTime: "11:30",
+    title: "Client Presentation"
+  },
+  {
+    id: "booking5",
+    roomId: "room2",
+    userId: "user1",
+    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startTime: "13:00",
+    endTime: "14:00",
+    title: "Team Retrospective"
+  },
+  {
+    id: "booking6",
+    roomId: "room1",
+    userId: "user1",
+    date: new Date().toISOString().split('T')[0],
+    startTime: new Date(new Date().getTime() + 20 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    endTime: new Date(new Date().getTime() + 80 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    title: "Urgent Meeting"
   }
 ];
 
@@ -151,6 +186,44 @@ export const requests: Request[] = [
     ],
     status: "approved",
     requestDate: "2023-10-10"
+  },
+  {
+    id: "request3",
+    userId: "user1",
+    items: [
+      { supplyId: "supply4", quantity: 5 },
+      { supplyId: "supply5", quantity: 2 }
+    ],
+    status: "pending",
+    requestDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  },
+  {
+    id: "request4",
+    userId: "user1",
+    items: [
+      { supplyId: "supply1", quantity: 10 }
+    ],
+    status: "approved",
+    requestDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  },
+  {
+    id: "request5",
+    userId: "user1",
+    items: [
+      { supplyId: "supply3", quantity: 1 },
+      { supplyId: "supply2", quantity: 3 }
+    ],
+    status: "ready",
+    requestDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  },
+  {
+    id: "request6",
+    userId: "user1",
+    items: [
+      { supplyId: "supply5", quantity: 2 }
+    ],
+    status: "rejected",
+    requestDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   }
 ];
 
