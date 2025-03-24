@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Room, Booking } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -249,19 +248,19 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   };
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div className="md:col-span-1">
         <Card className="shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Meeting Requirements</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start gap-2 border-primary/50">
-                    <Calendar className="h-4 w-4 text-primary" />
+                  <Button variant="outline" className="w-full justify-start gap-2 border-primary/50 text-sm">
+                    <Calendar className="h-3.5 w-3.5 text-primary" />
                     {format(date, "PPP")}
                   </Button>
                 </PopoverTrigger>
@@ -280,21 +279,21 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
 
             <div className="space-y-2">
               <Label>Meeting Time</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Clock className="h-4 w-4 mr-2" />
+                    <Button variant="outline" className="w-full justify-start text-xs">
+                      <Clock className="h-3.5 w-3.5 mr-1.5" />
                       {selectedTimeRange?.start || "Start Time"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent>
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-2 gap-1">
                       {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => (
                         <Button 
                           key={time} 
                           variant="outline" 
-                          className="text-center"
+                          className="text-center text-xs"
                           onClick={() => {
                             const [hour, min] = time.split(':').map(Number);
                             const endHour = hour + 1 > 17 ? 18 : hour + 1;
@@ -310,18 +309,18 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Clock className="h-4 w-4 mr-2" />
+                    <Button variant="outline" className="w-full justify-start text-xs">
+                      <Clock className="h-3.5 w-3.5 mr-1.5" />
                       {selectedTimeRange?.end || "End Time"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent>
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-2 gap-1">
                       {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => (
                         <Button 
                           key={time} 
                           variant="outline" 
-                          className="text-center"
+                          className="text-center text-xs"
                           disabled={selectedTimeRange?.start && selectedTimeRange.start >= time}
                           onClick={() => {
                             if (selectedTimeRange?.start) {
@@ -339,15 +338,15 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </div>
             
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label>Number of Attendees</Label>
-                <span className="text-sm text-muted-foreground">{attendees}</span>
+              <div className="flex justify-between items-center">
+                <Label className="text-xs">Attendees</Label>
+                <span className="text-xs text-muted-foreground">{attendees}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="h-8 w-8 p-0"
+                  className="h-6 w-6 p-0"
                   onClick={() => setAttendees(prev => Math.max(1, prev - 1))}
                 >
                   -
@@ -364,7 +363,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="h-8 w-8 p-0"
+                  className="h-6 w-6 p-0"
                   onClick={() => setAttendees(prev => Math.min(20, prev + 1))}
                 >
                   +
@@ -373,40 +372,44 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </div>
             
             <div className="space-y-2">
-              <Label>Required Equipment</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {equipmentOptions.map((equipment) => (
-                  <div key={equipment} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`equipment-${equipment}`} 
-                      checked={selectedEquipment.includes(equipment)}
-                      onCheckedChange={() => toggleEquipment(equipment)}
-                    />
-                    <Label 
-                      htmlFor={`equipment-${equipment}`}
-                      className="text-sm cursor-pointer flex items-center gap-1.5"
-                    >
-                      {equipmentIcons[equipment] || <AlertTriangle className="h-3.5 w-3.5" />}
-                      {equipment}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              <Label className="text-xs">Required Equipment</Label>
+              <ScrollArea className="h-24 w-full rounded-md border p-2">
+                <div className="space-y-1">
+                  {equipmentOptions.map((equipment) => (
+                    <div key={equipment} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`equipment-${equipment}`} 
+                        checked={selectedEquipment.includes(equipment)}
+                        onCheckedChange={() => toggleEquipment(equipment)}
+                        className="h-3.5 w-3.5"
+                      />
+                      <Label 
+                        htmlFor={`equipment-${equipment}`}
+                        className="text-xs cursor-pointer flex items-center gap-1"
+                      >
+                        {equipmentIcons[equipment] || <AlertTriangle className="h-3 w-3" />}
+                        {equipment}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
             
             <div className="space-y-2">
-              <Label>Search Rooms</Label>
+              <Label className="text-xs">Search Rooms</Label>
               <Input
                 placeholder="Room name or location"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="text-xs h-8"
               />
             </div>
 
-            <div className="space-y-2 mt-6">
-              <div className="flex justify-between">
-                <Label>Timeline Zoom</Label>
-                <span className="text-sm text-muted-foreground">{timeSlotDuration} min</span>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-xs">Timeline Zoom</Label>
+                <span className="text-xs text-muted-foreground">{timeSlotDuration} min</span>
               </div>
               <Slider
                 value={[timeSlotDuration]}
@@ -417,15 +420,15 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               />
             </div>
             
-            <div className="mt-6 pt-4 border-t">
-              <div className="text-sm text-muted-foreground mb-2">Available Rooms</div>
-              <div className="font-medium text-lg">{filteredRooms.length} of {rooms.length}</div>
+            <div className="pt-3 border-t">
+              <div className="text-xs text-muted-foreground mb-1">Available Rooms</div>
+              <div className="font-medium text-sm">{filteredRooms.length} of {rooms.length}</div>
               
               {selectedEquipment.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {selectedEquipment.map(eq => (
-                    <Badge key={eq} variant="outline" className="text-xs flex items-center gap-1 px-2 py-1">
-                      {equipmentIcons[eq] || <AlertTriangle className="h-3 w-3" />}
+                    <Badge key={eq} variant="outline" className="text-[10px] flex items-center gap-1 px-1.5 py-0.5">
+                      {equipmentIcons[eq] || <AlertTriangle className="h-2.5 w-2.5" />}
                       {eq}
                     </Badge>
                   ))}
@@ -434,9 +437,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
             </div>
 
             {warningMessage && (
-              <Alert className="bg-amber-50 border-amber-200 mt-4">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <AlertDescription className="text-amber-800">
+              <Alert className="bg-amber-50 border-amber-200 mt-2 py-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                <AlertDescription className="text-amber-800 text-xs">
                   {warningMessage}
                 </AlertDescription>
               </Alert>
@@ -445,7 +448,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         </Card>
       </div>
       
-      <div className="md:col-span-2 space-y-4">
+      <div className="md:col-span-4">
         <Card className="shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
