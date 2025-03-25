@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Label } from "@/components/ui/label";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -45,138 +45,112 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface EditUserModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onUpdateUser: (user: { id: string; username: string; email: string; role: string; status: string }) => void;
-  user: { id: string; username: string; email: string; role: string; status: string };
-  existingUsers: Array<{ id: string; username: string; email: string }>;
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: "admin" | "employee";
 }
 
-export const EditUserModal: React.FC<EditUserModalProps> = ({
-  isOpen,
-  onClose,
-  onUpdateUser,
-  user,
-  existingUsers,
-}) => {
+interface EditUserModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdateUser: (user: Omit<User, "id">) => void;
+  user: User | null;
+}
+
+export function EditUserModal({ open, onOpenChange, onUpdateUser, user }: EditUserModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
-  
+  const [formData, setFormData] = useState<Omit<User, "id">>({
+    username: "",
+    name: "",
+    role: "employee"
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username,
+        name: user.name,
+        role: user.role
+      });
+    }
+  }, [user]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: user.email,
-      role: user.role as "admin" | "user",
-      status: user.status as "active" | "inactive",
+      email: user?.email || "",
+      role: user?.role as "admin" | "user",
+      status: user?.status as "active" | "inactive",
       changePassword: false,
       password: "",
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    // Check if email already exists (for users other than the current one)
-    if (existingUsers.some(u => u.id !== user.id && u.email === data.email)) {
-      form.setError("email", { 
-        type: "manual", 
-        message: "Email already in use" 
-      });
-      return;
-    }
-
-    // Submit the data (including password only if it was changed)
-    onUpdateUser({
-      id: user.id,
-      username: user.username,
-      email: data.email,
-      role: data.role,
-      status: data.status,
-      // If we needed to handle password updates, we'd include the new password here
-    });
-
-    // Reset form
-    form.reset();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdateUser(formData);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            {/* Username (read-only) */}
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Username</label>
-              <Input value={user.username} disabled className="bg-muted" />
-              <p className="text-xs text-muted-foreground">Username cannot be changed</p>
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                required
+              />
             </div>
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="pointer-events-auto">
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="pointer-events-auto">
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value: "admin" | "employee") => setFormData({ ...formData, role: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="employee">Employee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: "active" | "inactive") => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             {/* Change Password Collapsible */}
             <Collapsible 
@@ -235,7 +209,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             </Collapsible>
             
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit">
@@ -247,4 +221,4 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

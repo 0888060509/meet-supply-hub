@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -29,19 +28,23 @@ const Login = () => {
     setError("");
     
     if (!username || !password) {
-      setError("Username and password are required");
+      setError("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu");
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-      const success = await login(username, password);
-      if (success) {
-        navigate("/dashboard");
+      await login(username, password);
+      navigate("/dashboard");
+    } catch (err: any) {
+      if (err.response?.data?.code === 'ACCOUNT_INACTIVE') {
+        setError(err.response.data.error);
+      } else if (err.response?.status === 401) {
+        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+      } else {
+        setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
       }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
       console.error(err);
     } finally {
       setIsSubmitting(false);

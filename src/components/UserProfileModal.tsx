@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ArrowLeft, Edit, ShieldAlert, ShieldCheck } from "lucide-react";
 import {
@@ -11,21 +10,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-interface UserProfileModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  user: { username: string; email: string; role: string; status: string };
-  onEditUser: () => void;
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: "admin" | "employee";
 }
 
-export const UserProfileModal: React.FC<UserProfileModalProps> = ({
-  isOpen,
-  onClose,
-  user,
-  onEditUser,
-}) => {
+interface UserProfileModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: User | null;
+}
+
+export function UserProfileModal({ open, onOpenChange, user }: UserProfileModalProps) {
+  if (!user) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>User Profile</DialogTitle>
@@ -37,7 +39,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold">{user.username}</h2>
-                <p className="text-muted-foreground">{user.email}</p>
+                <p className="text-muted-foreground">{user.name}</p>
               </div>
               
               <div className="flex flex-col items-end space-y-2">
@@ -49,15 +51,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   )}
                   {user.role}
                 </Badge>
-                
-                <div className="flex items-center">
-                  <div className={`h-2 w-2 rounded-full mr-2 ${
-                    user.status === "active" ? "bg-green-500" : "bg-red-500"
-                  }`} />
-                  <span className={`text-sm ${
-                    user.status === "active" ? "text-green-600" : "text-red-600"
-                  } capitalize`}>{user.status}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -77,11 +70,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           
           {/* Actions */}
           <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to User List
             </Button>
-            <Button onClick={onEditUser}>
+            <Button>
               <Edit className="mr-2 h-4 w-4" />
               Edit User
             </Button>
@@ -90,4 +83,4 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

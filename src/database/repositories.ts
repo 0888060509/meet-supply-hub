@@ -32,6 +32,44 @@ export const UserRepository = {
     const user = await this.findByUsername(username);
     if (!user) return false;
     return user.password_hash === hashPassword(password);
+  },
+
+  async login(username: string, password: string) {
+    const user = await query(
+      `
+      SELECT * FROM users 
+      WHERE username = $1 
+      AND password = crypt($2, password)
+      AND status = 'active'
+      `,
+      [username, password]
+    );
+
+    if (!user[0]) {
+      return null;
+    }
+
+    // Update last_login and login_count
+    await query(
+      `
+      UPDATE users 
+      SET last_login = CURRENT_TIMESTAMP,
+          login_count = COALESCE(login_count, 0) + 1
+      WHERE id = $1
+      `,
+      [user[0].id]
+    );
+
+    // Fetch updated user data
+    return query(
+      `SELECT * FROM users WHERE id = $1`,
+      [user[0].id]
+    );
+  },
+
+  async updateStatus(id: string, status: 'active' | 'inactive') {
+    const result = await query('UPDATE users SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
+    return result[0] || null;
   }
 };
 
