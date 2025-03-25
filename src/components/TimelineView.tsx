@@ -21,7 +21,8 @@ import {
   Tv, 
   Presentation, 
   Mic2, 
-  StickyNote
+  StickyNote,
+  RefreshCw
 } from "lucide-react";
 import { format, isAfter, isBefore, isToday, set } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -43,6 +44,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import RecurringBookingModal from "./RecurringBookingModal";
+import { toast } from "sonner";
 
 const equipmentIcons: Record<string, React.ReactNode> = {
   "Projector": <Projector className="h-4 w-4" />,
@@ -68,8 +71,8 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const [attendees, setAttendees] = useState<number>(2);
   const [selectedTimeRange, setSelectedTimeRange] = useState<{start: string, end: string} | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
-  
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [recurringModalOpen, setRecurringModalOpen] = useState(false);
   
   const equipmentOptions = Array.from(
     new Set(rooms.flatMap(room => room.equipment))
@@ -246,6 +249,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         : [...prev, equipment]
     );
   };
+  
+  const handleRecurringConfirm = (bookingInstances: any[]) => {
+    toast.success(`${bookingInstances.length} recurring bookings created successfully!`);
+    console.log("Recurring bookings created:", bookingInstances);
+  };
+  
+  const canMakeRecurring = selectedTimeRange !== null && selectedTimeRange.start && selectedTimeRange.end;
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -434,6 +444,17 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                   ))}
                 </div>
               )}
+              
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full mt-3 bg-primary/10 hover:bg-primary/20 gap-1.5"
+                disabled={!canMakeRecurring}
+                onClick={() => setRecurringModalOpen(true)}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Make this Recurring
+              </Button>
             </div>
 
             {warningMessage && (
@@ -473,7 +494,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           <CardContent className="p-0">
             <div className="border rounded-lg overflow-hidden">
               <div className="relative h-[500px] flex flex-col">
-                {/* Fixed header that scrolls horizontally with the content */}
                 <div className="sticky top-0 z-20 flex border-b bg-white">
                   <div className="w-[200px] min-w-[200px] border-r p-2 bg-gray-100 font-medium">
                     Room
@@ -502,7 +522,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                   </div>
                 ) : (
                   <div className="flex-1 flex overflow-hidden">
-                    {/* Fixed room column that scrolls vertically */}
                     <div className="w-[200px] min-w-[200px] bg-white z-10 border-r overflow-y-auto" id="room-column">
                       {filteredRooms.map((room) => (
                         <div 
@@ -538,7 +557,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                       ))}
                     </div>
                     
-                    {/* Scrollable timeline content - synchronized with header */}
                     <div 
                       className="overflow-y-auto overflow-x-auto flex-1" 
                       id="timeline-content"
@@ -686,6 +704,23 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
           </CardFooter>
         </Card>
       </div>
+      
+      <RecurringBookingModal
+        isOpen={recurringModalOpen}
+        onClose={() => setRecurringModalOpen(false)}
+        onConfirm={handleRecurringConfirm}
+        initialData={
+          selectedTimeRange ? {
+            date,
+            startTime: selectedTimeRange.start,
+            endTime: selectedTimeRange.end,
+            attendees,
+            selectedEquipment
+          } : null
+        }
+        rooms={rooms}
+        bookings={bookings}
+      />
     </div>
   );
 };
