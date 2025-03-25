@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -93,16 +92,13 @@ const RecurringBookingModal = ({
   const [bookingInstances, setBookingInstances] = useState<RecurringBookingInstance[]>([]);
   const [alert, setAlert] = useState(false);
   
-  // Animation states
   const [animateTransition, setAnimateTransition] = useState(false);
 
   useEffect(() => {
     if (isOpen && initialData) {
-      // Reset steps when modal opens
       setStep(1);
       setAnimateTransition(false);
       
-      // Set initial room selection to first available room that meets requirements
       const availableRoom = rooms.find(room => 
         room.capacity >= initialData.attendees &&
         (initialData.selectedEquipment.length === 0 || 
@@ -112,7 +108,6 @@ const RecurringBookingModal = ({
         setSelectedRoomId(availableRoom.id);
       }
       
-      // Set default weeklyDays based on the selected date
       const dayOfWeek = initialData.date.getDay();
       setWeeklyDays([dayOfWeek]);
     }
@@ -170,7 +165,6 @@ const RecurringBookingModal = ({
     ) {
       let shouldInclude = false;
 
-      // Apply recurrence pattern logic
       switch (recurrencePattern) {
         case "daily":
           shouldInclude = true;
@@ -182,7 +176,6 @@ const RecurringBookingModal = ({
           if (monthlyType === "dayOfMonth") {
             shouldInclude = currentDate.getDate() === initialData.date.getDate();
           } else {
-            // Implementation for "First Monday" type logic would go here
             shouldInclude = true;
           }
           break;
@@ -202,7 +195,6 @@ const RecurringBookingModal = ({
           status: "available"
         };
 
-        // Check if there's a conflict
         const hasConflict = bookings.some(booking => 
           booking.roomId === selectedRoomId &&
           booking.date === dateStr &&
@@ -219,17 +211,13 @@ const RecurringBookingModal = ({
         count++;
       }
 
-      // Advance to next date based on pattern and frequency
       switch (recurrencePattern) {
         case "daily":
           currentDate = addDays(currentDate, frequency);
           break;
         case "weekly":
-          // For weekly, we need to advance by days until we find the next day that matches
-          // our selected weekdays, but we need to ensure we don't get stuck in an infinite loop
           currentDate = addDays(currentDate, 1);
           
-          // If we've gone through a whole week without finding a match, advance by frequency weeks
           const daysPassed = 7;
           if (daysPassed >= 7 && !shouldInclude) {
             currentDate = addWeeks(currentDate, frequency - 1);
@@ -260,7 +248,6 @@ const RecurringBookingModal = ({
   };
 
   const isFormValid = () => {
-    // Check if essential fields are filled
     if (!selectedRoomId) return false;
     if (recurrencePattern === "weekly" && weeklyDays.length === 0) return false;
     if (endType === "endDate" && !endDate) return false;
@@ -269,7 +256,6 @@ const RecurringBookingModal = ({
   };
 
   const isReviewValid = () => {
-    // Check if all conflicts are resolved
     return !bookingInstances.some(instance => instance.status === "conflicting");
   };
 
@@ -318,7 +304,6 @@ const RecurringBookingModal = ({
     return `This booking will repeat ${recurrenceText} from ${initialData.startTime} to ${initialData.endTime}, starting ${format(initialData.date, "MMMM do, yyyy")}, ${endText} in ${roomName}.`;
   };
 
-  // Helper function to check if a room is available for a specific booking instance
   const isRoomAvailableForInstance = (roomId: string, instanceDate: string, startTime: string, endTime: string): boolean => {
     return !bookings.some(booking => 
       booking.roomId === roomId &&
@@ -329,7 +314,6 @@ const RecurringBookingModal = ({
     );
   };
 
-  // Helper function to check if a room meets requirements
   const doesRoomMeetRequirements = (room: Room): boolean => {
     return (!initialData || room.capacity >= initialData.attendees) &&
       (!initialData?.selectedEquipment.length || 
@@ -352,7 +336,6 @@ const RecurringBookingModal = ({
           </DialogHeader>
           
           <div className="relative overflow-hidden my-2">
-            {/* Step 1: Input Details */}
             <div className={cn(
               "transition-all duration-300 transform",
               step !== 1 && "absolute inset-0",
@@ -360,7 +343,7 @@ const RecurringBookingModal = ({
             )}>
               <div className="space-y-4 py-1 overflow-y-auto max-h-[60vh] px-1">
                 <div className="grid grid-cols-2 gap-4 bg-accent/10 p-3 rounded-md">
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-xs font-medium">Start Time</Label>
                     <Input 
                       value={initialData?.startTime || ""} 
@@ -368,7 +351,7 @@ const RecurringBookingModal = ({
                       className="bg-background h-8 text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-xs font-medium">End Time</Label>
                     <Input 
                       value={initialData?.endTime || ""} 
@@ -377,7 +360,7 @@ const RecurringBookingModal = ({
                     />
                   </div>
                 
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-xs font-medium">Start Date</Label>
                     <Input 
                       value={initialData ? format(initialData.date, "PPP") : ""} 
@@ -386,7 +369,7 @@ const RecurringBookingModal = ({
                     />
                   </div>
                 
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-xs font-medium">Attendees</Label>
                     <Input 
                       type="number" 
@@ -397,7 +380,7 @@ const RecurringBookingModal = ({
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium">Room</Label>
                   <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
                     <SelectTrigger className="h-9">
@@ -419,7 +402,7 @@ const RecurringBookingModal = ({
                 </div>
                 
                 {initialData?.selectedEquipment.length ? (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label className="text-sm font-medium">Required Equipment</Label>
                     <div className="flex flex-wrap gap-1">
                       {initialData.selectedEquipment.map(eq => (
@@ -543,13 +526,12 @@ const RecurringBookingModal = ({
                               {endDate ? format(endDate, "PPP") : "Pick a date"}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
                               selected={endDate}
                               onSelect={setEndDate}
                               initialFocus
-                              className="bg-white pointer-events-auto"
                               disabled={(date) => initialData ? isBefore(date, initialData.date) : false}
                             />
                           </PopoverContent>
@@ -561,7 +543,6 @@ const RecurringBookingModal = ({
               </div>
             </div>
             
-            {/* Step 2: Summary and Conflict Resolution */}
             <div className={cn(
               "transition-all duration-300 transform",
               step !== 2 && "absolute inset-0",
@@ -574,7 +555,7 @@ const RecurringBookingModal = ({
                 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
+                    <CalendarIcon className="h-4 w-4" />
                     Generated Booking Instances
                   </Label>
                   <ScrollArea className="h-[280px] rounded-md border">
@@ -641,100 +622,10 @@ const RecurringBookingModal = ({
                                     <SelectContent>
                                       {rooms
                                         .filter(roomItem => {
-                                          // Check if room is available for this timeslot
                                           const isAvailable = isRoomAvailableForInstance(
                                             roomItem.id, 
                                             instance.date, 
                                             instance.startTime, 
                                             instance.endTime
                                           );
-                                          
-                                          // Also check capacity and equipment requirements
-                                          const meetsRequirements = doesRoomMeetRequirements(roomItem);
-                                            
-                                          return isAvailable && meetsRequirements;
-                                        })
-                                        .map(roomItem => (
-                                          <SelectItem key={roomItem.id} value={roomItem.id}>
-                                            {roomItem.name} (Capacity: {roomItem.capacity})
-                                          </SelectItem>
-                                        ))
-                                      }
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="p-4 text-center text-muted-foreground">
-                          No booking instances generated. Please adjust your recurrence settings.
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                  
-                  {bookingInstances.some(instance => instance.status === "conflicting") && (
-                    <div className="text-xs text-muted-foreground flex items-center p-2 bg-amber-50 rounded-md border border-amber-200">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mr-1.5" />
-                      Please resolve all conflicts by selecting alternative rooms
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="border-t pt-3 mt-2">
-            {step === 1 ? (
-              <>
-                <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-                <Button 
-                  onClick={handleNext}
-                  disabled={!isFormValid()}
-                  size="sm"
-                  className="px-6"
-                >
-                  Next
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" onClick={handleBack}>Back</Button>
-                <Button 
-                  onClick={handleConfirm}
-                  disabled={!isReviewValid()}
-                  size="sm"
-                  className={cn(
-                    "transition-transform px-6",
-                    isReviewValid() && "hover:scale-105"
-                  )}
-                >
-                  Confirm Booking
-                </Button>
-              </>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <AlertDialog open={alert} onOpenChange={setAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel recurring booking setup?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your recurring booking setup will be lost. Are you sure you want to continue?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, continue setup</AlertDialogCancel>
-            <AlertDialogAction onClick={onClose}>Yes, cancel</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-};
-
-export default RecurringBookingModal;
+                                          const
