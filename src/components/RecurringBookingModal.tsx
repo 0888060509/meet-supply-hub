@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -106,7 +105,6 @@ const RecurringBookingModal = ({
     initialData ? addMonths(initialData.date, 3) : undefined
   );
   
-  // Editable values from initialData
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialData?.date);
   const [startTime, setStartTime] = useState(initialData?.startTime || "");
   const [endTime, setEndTime] = useState(initialData?.endTime || "");
@@ -123,7 +121,6 @@ const RecurringBookingModal = ({
       setStep(1);
       setAnimateTransition(false);
       
-      // Update editable values when modal opens
       setSelectedDate(initialData.date);
       setStartTime(initialData.startTime);
       setEndTime(initialData.endTime);
@@ -356,7 +353,7 @@ const RecurringBookingModal = ({
   return (
     <>
       <AlertDialog open={alert} onOpenChange={setAlert}>
-        <AlertDialogContent>
+        <AlertDialogContent className="pointer-events-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Recurring Booking?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -371,7 +368,7 @@ const RecurringBookingModal = ({
       </AlertDialog>
 
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden bg-white p-0">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden bg-white p-0 pointer-events-auto">
           <DialogHeader className="p-6 pb-3 border-b">
             <DialogTitle className="text-xl font-semibold">
               {step === 1 ? "Set Up Recurring Booking" : "Review Recurring Booking"}
@@ -389,20 +386,19 @@ const RecurringBookingModal = ({
               step !== 1 && "absolute inset-0 opacity-0",
               animateTransition && (step === 1 ? "translate-x-0" : "-translate-x-full")
             )}>
-              <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+              <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2 pointer-events-auto">
                 <div className="bg-accent/10 p-4 rounded-md">
                   <div className="text-sm mb-4 font-medium">
                     Booking Details
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Make time fields editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Start Time</Label>
                       <Select value={startTime} onValueChange={setStartTime}>
-                        <SelectTrigger className="h-9 text-sm">
+                        <SelectTrigger className="h-9 text-sm pointer-events-auto">
                           <SelectValue placeholder="Select start time" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="pointer-events-auto">
                           {timeSlots.slice(0, -1).map((time) => (
                             <SelectItem key={time} value={time}>
                               {time}
@@ -418,10 +414,10 @@ const RecurringBookingModal = ({
                         onValueChange={setEndTime}
                         disabled={!startTime}
                       >
-                        <SelectTrigger className="h-9 text-sm">
+                        <SelectTrigger className="h-9 text-sm pointer-events-auto">
                           <SelectValue placeholder="Select end time" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="pointer-events-auto">
                           {timeSlots.filter(time => time > startTime).map((time) => (
                             <SelectItem key={time} value={time}>
                               {time}
@@ -431,7 +427,6 @@ const RecurringBookingModal = ({
                       </Select>
                     </div>
                   
-                    {/* Make date editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Start Date</Label>
                       <Popover>
@@ -439,7 +434,7 @@ const RecurringBookingModal = ({
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal h-9 text-sm",
+                              "w-full justify-start text-left font-normal h-9 text-sm pointer-events-auto",
                               !selectedDate && "text-muted-foreground"
                             )}
                           >
@@ -447,7 +442,7 @@ const RecurringBookingModal = ({
                             {selectedDate ? format(selectedDate, "PPP") : "Select date"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 z-50 pointer-events-auto" align="start">
                           <Calendar
                             mode="single"
                             selected={selectedDate}
@@ -460,7 +455,6 @@ const RecurringBookingModal = ({
                       </Popover>
                     </div>
                   
-                    {/* Make attendees editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Attendees</Label>
                       <Input 
@@ -469,7 +463,7 @@ const RecurringBookingModal = ({
                         onChange={(e) => setAttendees(parseInt(e.target.value) || 0)} 
                         min={1}
                         max={50}
-                        className="h-9 text-sm"
+                        className="h-9 text-sm pointer-events-auto"
                       />
                     </div>
                   </div>
@@ -478,10 +472,10 @@ const RecurringBookingModal = ({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Room</Label>
                   <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 pointer-events-auto">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="pointer-events-auto">
                       {rooms
                         .filter(room => room.capacity >= attendees)
                         .map(room => (
@@ -620,7 +614,7 @@ const RecurringBookingModal = ({
                                 {endDate ? format(endDate, "PPP") : "Pick a date"}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent className="w-auto p-0 z-50 pointer-events-auto" align="start">
                               <Calendar
                                 mode="single"
                                 selected={endDate}
@@ -644,7 +638,7 @@ const RecurringBookingModal = ({
               step !== 2 && "absolute inset-0 opacity-0",
               animateTransition && (step === 2 ? "translate-x-0" : "translate-x-full")
             )}>
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 pointer-events-auto">
                 <div className="bg-accent/20 p-4 rounded-md text-sm">
                   {getSummaryText()}
                 </div>
@@ -654,7 +648,7 @@ const RecurringBookingModal = ({
                     <CalendarIcon className="h-4 w-4" />
                     Generated Booking Instances
                   </Label>
-                  <ScrollArea className="h-[300px] rounded-md border p-1">
+                  <ScrollArea className="h-[300px] rounded-md border p-1 pointer-events-auto">
                     <div className="space-y-3 p-2">
                       {bookingInstances.length > 0 ? (
                         bookingInstances.map((instance, index) => {
@@ -704,7 +698,6 @@ const RecurringBookingModal = ({
                                         <Check className="h-3 w-3 mr-1" /> Alternative Selected
                                       </Badge>
                                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
-                                        // Reset to conflicting to allow re-selection
                                         setBookingInstances(prev => {
                                           const updated = [...prev];
                                           updated[index] = {
@@ -727,10 +720,10 @@ const RecurringBookingModal = ({
                                   <Select 
                                     onValueChange={(roomId) => handleAlternativeRoomSelect(index, roomId)}
                                   >
-                                    <SelectTrigger className="h-8 text-xs">
+                                    <SelectTrigger className="h-8 text-xs pointer-events-auto">
                                       <SelectValue placeholder="Choose alternative room" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="pointer-events-auto z-50">
                                       {rooms
                                         .filter(roomItem => {
                                           const isAvailable = isRoomAvailableForInstance(

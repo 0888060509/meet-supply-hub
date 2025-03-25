@@ -448,7 +448,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-3 gap-1.5"
+                  className="w-full mt-3 gap-1.5 bg-primary-50"
                   onClick={() => setRecurringModalOpen(true)}
                 >
                   <Calendar className="h-3.5 w-3.5" />
