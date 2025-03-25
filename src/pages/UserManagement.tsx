@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Filter } from "lucide-react";
@@ -21,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserTable } from "@/components/UserTable";
 import { AddUserModal } from "@/components/AddUserModal";
 import { EditUserModal } from "@/components/EditUserModal";
 import { UserProfileModal } from "@/components/UserProfileModal";
