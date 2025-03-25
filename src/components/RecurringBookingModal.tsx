@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Clock, ArrowRight, Check, AlertTriangle, Edit } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, ArrowRight, Check, AlertTriangle, Edit, CalendarRange, CalendarDays, User, Users, Repeat, Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -639,8 +639,32 @@ const RecurringBookingModal = ({
               animateTransition && (step === 2 ? "translate-x-0" : "translate-x-full")
             )}>
               <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 pointer-events-auto">
-                <div className="bg-accent/20 p-4 rounded-md text-sm">
-                  {getSummaryText()}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-md text-sm shadow-sm border border-blue-100">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-100 p-2 rounded-full">
+                      <CalendarRange className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800 mb-1">Booking Summary</h4>
+                      <p className="text-blue-700">{getSummaryText()}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                          <CalendarDays className="h-3 w-3" /> {bookingInstances.length} instances
+                        </Badge>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                          <Users className="h-3 w-3" /> {attendees} attendees
+                        </Badge>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {startTime} - {endTime}
+                        </Badge>
+                        {selectedRoomId && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                            <Building className="h-3 w-3" /> {rooms.find(r => r.id === selectedRoomId)?.name || "Selected room"}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-3">
