@@ -1,11 +1,10 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle, Plus } from "lucide-react";
+import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle, Plus, UserCog } from "lucide-react";
 import { useState, useEffect } from "react";
 import { bookings, rooms, getUserBookings, getUserRequests, requests, supplies } from "@/lib/data";
 import { format } from "date-fns";
@@ -25,25 +24,20 @@ const Dashboard = () => {
   console.log("All bookings:", bookings);
   console.log("All requests:", requests);
 
-  // Fetch user data on component mount
   useEffect(() => {
     if (user) {
       console.log("Fetching data for user:", user.id);
       
-      // Get upcoming bookings for the user
       const userBookings = getUserBookings(user.id);
       console.log("User bookings:", userBookings);
       
-      // Sort bookings by date and time, and take the next 3
       const upcoming = userBookings
         .sort((a, b) => {
-          // First compare dates
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
           if (dateA > dateB) return 1;
           if (dateA < dateB) return -1;
           
-          // If dates are equal, compare times
           return a.startTime.localeCompare(b.startTime);
         })
         .slice(0, 3);
@@ -51,14 +45,12 @@ const Dashboard = () => {
       console.log("Upcoming bookings:", upcoming);
       setUpcomingBookings(upcoming);
       
-      // Get pending requests for the user
       const userRequests = getUserRequests(user.id);
       console.log("User requests:", userRequests);
       const pending = userRequests.filter(req => req.status === "pending");
       console.log("Pending requests:", pending);
       setPendingRequests(pending);
       
-      // Check if there are any urgent alerts (e.g., meetings starting soon)
       const today = new Date();
       const todayStr = format(today, "yyyy-MM-dd");
       
@@ -69,10 +61,8 @@ const Dashboard = () => {
         const bookingTime = new Date(today);
         bookingTime.setHours(bookingHour, bookingMinute);
         
-        // Calculate time difference in minutes
         const diffMinutes = Math.round((bookingTime.getTime() - today.getTime()) / (1000 * 60));
         
-        // Alert if meeting is starting in 30 minutes or less
         return diffMinutes > 0 && diffMinutes <= 30;
       });
       
@@ -86,7 +76,6 @@ const Dashboard = () => {
         })));
       }
       
-      // Set notification indicator
       setHasNotifications(pending.length > 0 || upcomingMeetings.length > 0);
     }
   }, [user]);
@@ -101,7 +90,6 @@ const Dashboard = () => {
 
   return (
     <div className="container py-8 animate-fade-in">
-      {/* Urgent alerts section */}
       {urgentAlerts.length > 0 && (
         <div className="mb-6 space-y-2">
           {urgentAlerts.map(alert => (
@@ -130,7 +118,6 @@ const Dashboard = () => {
           </p>
         </div>
         
-        {/* Notifications bell */}
         <div className="relative">
           <Button 
             variant="ghost" 
@@ -144,7 +131,6 @@ const Dashboard = () => {
             )}
           </Button>
           
-          {/* Notifications dropdown */}
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 z-50 border rounded-md bg-background shadow-lg animate-fade-in">
               <div className="p-3 border-b">
@@ -176,9 +162,7 @@ const Dashboard = () => {
         </div>
       </div>
       
-      {/* Personalized Information Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Upcoming Bookings Card */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between">
@@ -229,7 +213,6 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
         
-        {/* Pending Requests Card */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between">
@@ -245,7 +228,6 @@ const Dashboard = () => {
             {pendingRequests.length > 0 ? (
               <div className="space-y-3">
                 {pendingRequests.map(request => {
-                  // Get supply names for display
                   const itemNames = request.items.map(item => {
                     const supply = supplies.find(s => s.id === item.supplyId);
                     return `${item.quantity}x ${supply?.name || 'Unknown item'}`;
@@ -285,9 +267,7 @@ const Dashboard = () => {
         </Card>
       </div>
       
-      {/* Quick Links Section with Modal Dialogs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Room Booking Card with Quick Booking Dialog */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -325,7 +305,6 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
         
-        {/* Office Supplies Card with Quick Request Dialog */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -363,7 +342,6 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
         
-        {/* My Calendar Card */}
         <Card className="hover:shadow-md transition-shadow hover-scale">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -385,7 +363,6 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
         
-        {/* Admin Section - Only visible to admins */}
         {isAdmin && (
           <>
             <Card className="hover:shadow-md transition-shadow border-primary/20">
@@ -426,6 +403,27 @@ const Dashboard = () => {
               <CardFooter>
                 <Button asChild variant="default" className="w-full">
                   <Link to="/admin/bookings">View All Bookings</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow border-primary/20 hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCog className="h-5 w-5 text-primary" /> User Management
+                </CardTitle>
+                <CardDescription>
+                  Admin tools for managing user accounts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Add, edit, and manage user accounts. Control access and permissions across the platform.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild variant="default" className="w-full">
+                  <Link to="/admin/users">Manage Users</Link>
                 </Button>
               </CardFooter>
             </Card>
