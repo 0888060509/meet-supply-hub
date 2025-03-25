@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -322,6 +323,21 @@ const RecurringBookingModal = ({
 
   return (
     <>
+      <AlertDialog open={alert} onOpenChange={setAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Recurring Booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel? All your recurring booking settings will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setAlert(false)}>Continue Editing</AlertDialogCancel>
+            <AlertDialogAction onClick={onClose}>Yes, Cancel</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden bg-white">
           <DialogHeader className="pb-2 border-b">
@@ -562,8 +578,8 @@ const RecurringBookingModal = ({
                     <div className="space-y-2 p-2">
                       {bookingInstances.length > 0 ? (
                         bookingInstances.map((instance, index) => {
-                          const room = rooms.find(r => r.id === instance.roomId);
-                          const originalRoom = rooms.find(r => r.id === instance.originalRoomId);
+                          const roomForInstance = rooms.find(r => r.id === instance.roomId);
+                          const originalRoomForInstance = rooms.find(r => r.id === instance.originalRoomId);
                           
                           return (
                             <div 
@@ -587,7 +603,7 @@ const RecurringBookingModal = ({
                                   {instance.status === "alternative" && (
                                     <div className="text-xs text-amber-600 mt-1 flex items-center">
                                       <ArrowRight className="h-3 w-3 mr-1" />
-                                      Alternative: {room?.name} (instead of {originalRoom?.name})
+                                      Alternative: {roomForInstance?.name} (instead of {originalRoomForInstance?.name})
                                     </div>
                                   )}
                                 </div>
@@ -628,4 +644,65 @@ const RecurringBookingModal = ({
                                             instance.startTime, 
                                             instance.endTime
                                           );
-                                          const
+                                          const meetsRequirements = doesRoomMeetRequirements(roomItem);
+                                          return isAvailable && meetsRequirements;
+                                        })
+                                        .map(roomItem => (
+                                          <SelectItem key={roomItem.id} value={roomItem.id}>
+                                            {roomItem.name} (Capacity: {roomItem.capacity})
+                                          </SelectItem>
+                                        ))
+                                      }
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-center text-muted-foreground text-sm">
+                          No instances generated yet. Please go back and configure the recurrence pattern.
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="px-0 pt-4 border-t">
+            {step === 1 ? (
+              <div className="w-full flex justify-between">
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleNext}
+                  disabled={!isFormValid()}
+                >
+                  Next
+                </Button>
+              </div>
+            ) : (
+              <div className="w-full flex justify-between">
+                <Button variant="outline" onClick={handleBack}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleConfirm}
+                  disabled={!isReviewValid()}
+                >
+                  Confirm {bookingInstances.length} Bookings
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default RecurringBookingModal;
