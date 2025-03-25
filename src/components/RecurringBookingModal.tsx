@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -395,12 +396,12 @@ const RecurringBookingModal = ({
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Start Time</Label>
                       <Select value={startTime} onValueChange={setStartTime}>
-                        <SelectTrigger className="h-9 text-sm pointer-events-auto">
+                        <SelectTrigger className="h-9 text-sm w-full pointer-events-auto">
                           <SelectValue placeholder="Select start time" />
                         </SelectTrigger>
-                        <SelectContent className="pointer-events-auto">
+                        <SelectContent className="pointer-events-auto z-50">
                           {timeSlots.slice(0, -1).map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem key={time} value={time} className="pointer-events-auto">
                               {time}
                             </SelectItem>
                           ))}
@@ -414,12 +415,12 @@ const RecurringBookingModal = ({
                         onValueChange={setEndTime}
                         disabled={!startTime}
                       >
-                        <SelectTrigger className="h-9 text-sm pointer-events-auto">
+                        <SelectTrigger className="h-9 text-sm w-full pointer-events-auto">
                           <SelectValue placeholder="Select end time" />
                         </SelectTrigger>
-                        <SelectContent className="pointer-events-auto">
+                        <SelectContent className="pointer-events-auto z-50">
                           {timeSlots.filter(time => time > startTime).map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem key={time} value={time} className="pointer-events-auto">
                               {time}
                             </SelectItem>
                           ))}
@@ -475,11 +476,11 @@ const RecurringBookingModal = ({
                     <SelectTrigger className="h-10 pointer-events-auto">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
-                    <SelectContent className="pointer-events-auto">
+                    <SelectContent className="pointer-events-auto z-50">
                       {rooms
                         .filter(room => room.capacity >= attendees)
                         .map(room => (
-                          <SelectItem key={room.id} value={room.id}>
+                          <SelectItem key={room.id} value={room.id} className="pointer-events-auto">
                             {room.name} (Capacity: {room.capacity})
                           </SelectItem>
                         ))
@@ -505,14 +506,14 @@ const RecurringBookingModal = ({
                   <div className="flex justify-between items-center">
                     <Label className="text-sm font-medium">Recurrence Pattern</Label>
                     <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
-                      <SelectTrigger className="w-[140px] h-9">
+                      <SelectTrigger className="w-[140px] h-9 pointer-events-auto">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
+                      <SelectContent className="pointer-events-auto z-50">
+                        <SelectItem value="daily" className="pointer-events-auto">Daily</SelectItem>
+                        <SelectItem value="weekly" className="pointer-events-auto">Weekly</SelectItem>
+                        <SelectItem value="monthly" className="pointer-events-auto">Monthly</SelectItem>
+                        <SelectItem value="custom" className="pointer-events-auto">Custom</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -526,7 +527,7 @@ const RecurringBookingModal = ({
                         max={99}
                         value={frequency}
                         onChange={(e) => setFrequency(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-20 h-9 text-sm"
+                        className="w-20 h-9 text-sm pointer-events-auto"
                       />
                       <span className="text-sm text-muted-foreground">
                         {getFrequencyLabel()}
@@ -545,7 +546,7 @@ const RecurringBookingModal = ({
                           type="button"
                           size="sm"
                           variant={weeklyDays.includes(day.value) ? "default" : "outline"}
-                          className="w-10 h-10 rounded-full p-0"
+                          className="w-10 h-10 rounded-full p-0 pointer-events-auto"
                           onClick={() => handleWeeklyDayToggle(day.value)}
                         >
                           {day.label}
@@ -579,7 +580,7 @@ const RecurringBookingModal = ({
                   <Label className="text-sm font-medium">End Condition</Label>
                   <RadioGroup value={endType} onValueChange={setEndType} className="space-y-3">
                     <div className="flex items-center space-x-2 bg-accent/5 p-3 rounded-md">
-                      <RadioGroupItem value="occurrences" id="occurrences" />
+                      <RadioGroupItem value="occurrences" id="occurrences" className="pointer-events-auto" />
                       <div className="flex items-center gap-2 flex-1">
                         <Label htmlFor="occurrences" className="cursor-pointer text-sm whitespace-nowrap">After</Label>
                         <Input
@@ -588,14 +589,14 @@ const RecurringBookingModal = ({
                           max={99}
                           value={occurrences}
                           onChange={(e) => setOccurrences(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-20 h-9 text-sm mx-1"
+                          className="w-20 h-9 text-sm mx-1 pointer-events-auto"
                           disabled={endType !== "occurrences"}
                         />
                         <span className="text-sm text-muted-foreground whitespace-nowrap">occurrences</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 bg-accent/5 p-3 rounded-md">
-                      <RadioGroupItem value="endDate" id="endDate" />
+                      <RadioGroupItem value="endDate" id="endDate" className="pointer-events-auto" />
                       <div className="flex items-center gap-2 flex-1">
                         <Label htmlFor="endDate" className="cursor-pointer text-sm whitespace-nowrap">On date</Label>
                         <div className="flex-1">
@@ -606,7 +607,7 @@ const RecurringBookingModal = ({
                                 size="sm"
                                 disabled={endType !== "endDate"}
                                 className={cn(
-                                  "justify-start text-left font-normal w-full h-9 text-sm",
+                                  "justify-start text-left font-normal w-full h-9 text-sm pointer-events-auto",
                                   !endDate && "text-muted-foreground"
                                 )}
                               >
@@ -787,24 +788,26 @@ const RecurringBookingModal = ({
           <DialogFooter className="p-6 pt-4 border-t">
             {step === 1 ? (
               <div className="w-full flex justify-between">
-                <Button variant="outline" onClick={onClose}>
+                <Button variant="outline" onClick={onClose} className="pointer-events-auto">
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleNext}
                   disabled={!isFormValid()}
+                  className="pointer-events-auto"
                 >
                   Next
                 </Button>
               </div>
             ) : (
               <div className="w-full flex justify-between">
-                <Button variant="outline" onClick={handleBack}>
+                <Button variant="outline" onClick={handleBack} className="pointer-events-auto">
                   Back
                 </Button>
                 <Button 
                   onClick={handleConfirm}
                   disabled={!isReviewValid()}
+                  className="pointer-events-auto"
                 >
                   Confirm {bookingInstances.length} Bookings
                 </Button>
