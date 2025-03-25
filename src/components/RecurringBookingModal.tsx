@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Clock, ArrowRight, Check, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, ArrowRight, Check, AlertTriangle, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -699,9 +699,24 @@ const RecurringBookingModal = ({
                                     </Badge>
                                   )}
                                   {instance.status === "alternative" && (
-                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                                      <Check className="h-3 w-3 mr-1" /> Alternative Selected
-                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                                        <Check className="h-3 w-3 mr-1" /> Alternative Selected
+                                      </Badge>
+                                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                                        // Reset to conflicting to allow re-selection
+                                        setBookingInstances(prev => {
+                                          const updated = [...prev];
+                                          updated[index] = {
+                                            ...updated[index],
+                                            status: "conflicting"
+                                          };
+                                          return updated;
+                                        });
+                                      }}>
+                                        <Edit className="h-3.5 w-3.5 text-amber-800" />
+                                      </Button>
+                                    </div>
                                   )}
                                 </div>
                               </div>
