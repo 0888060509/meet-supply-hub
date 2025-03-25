@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -79,6 +80,13 @@ const DAYS_OF_WEEK = [
   { label: "Sun", value: 0 },
 ];
 
+const timeSlots = [
+  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00"
+];
+
 const RecurringBookingModal = ({
   isOpen,
   onClose,
@@ -97,16 +105,30 @@ const RecurringBookingModal = ({
   const [endDate, setEndDate] = useState<Date | undefined>(
     initialData ? addMonths(initialData.date, 3) : undefined
   );
+  
+  // Editable values from initialData
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialData?.date);
+  const [startTime, setStartTime] = useState(initialData?.startTime || "");
+  const [endTime, setEndTime] = useState(initialData?.endTime || "");
+  const [attendees, setAttendees] = useState(initialData?.attendees || 2);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(initialData?.selectedEquipment || []);
   const [selectedRoomId, setSelectedRoomId] = useState("");
+  
   const [bookingInstances, setBookingInstances] = useState<RecurringBookingInstance[]>([]);
   const [alert, setAlert] = useState(false);
-  
   const [animateTransition, setAnimateTransition] = useState(false);
 
   useEffect(() => {
     if (isOpen && initialData) {
       setStep(1);
       setAnimateTransition(false);
+      
+      // Update editable values when modal opens
+      setSelectedDate(initialData.date);
+      setStartTime(initialData.startTime);
+      setEndTime(initialData.endTime);
+      setAttendees(initialData.attendees);
+      setSelectedEquipment(initialData.selectedEquipment || []);
       
       const availableRoom = rooms.find(room => 
         room.capacity >= initialData.attendees &&
@@ -162,10 +184,10 @@ const RecurringBookingModal = ({
   };
 
   const generateBookingInstances = (): RecurringBookingInstance[] => {
-    if (!initialData) return [];
+    if (!selectedDate) return [];
 
     const instances: RecurringBookingInstance[] = [];
-    let currentDate = new Date(initialData.date);
+    let currentDate = new Date(selectedDate);
     let count = 0;
 
     while (
@@ -183,7 +205,7 @@ const RecurringBookingModal = ({
           break;
         case "monthly":
           if (monthlyType === "dayOfMonth") {
-            shouldInclude = currentDate.getDate() === initialData.date.getDate();
+            shouldInclude = currentDate.getDate() === selectedDate.getDate();
           } else {
             shouldInclude = true;
           }
@@ -199,17 +221,17 @@ const RecurringBookingModal = ({
           date: dateStr,
           roomId: selectedRoomId,
           originalRoomId: selectedRoomId,
-          startTime: initialData.startTime,
-          endTime: initialData.endTime,
+          startTime,
+          endTime,
           status: "available"
         };
 
         const hasConflict = bookings.some(booking => 
           booking.roomId === selectedRoomId &&
           booking.date === dateStr &&
-          ((booking.startTime <= initialData.startTime && booking.endTime > initialData.startTime) ||
-           (booking.startTime < initialData.endTime && booking.endTime >= initialData.endTime) ||
-           (booking.startTime >= initialData.startTime && booking.endTime <= initialData.endTime))
+          ((booking.startTime <= startTime && booking.endTime > startTime) ||
+           (booking.startTime < endTime && booking.endTime >= endTime) ||
+           (booking.startTime >= startTime && booking.endTime <= endTime))
         );
 
         if (hasConflict) {
@@ -258,6 +280,8 @@ const RecurringBookingModal = ({
 
   const isFormValid = () => {
     if (!selectedRoomId) return false;
+    if (!selectedDate) return false;
+    if (!startTime || !endTime) return false;
     if (recurrencePattern === "weekly" && weeklyDays.length === 0) return false;
     if (endType === "endDate" && !endDate) return false;
     
@@ -279,7 +303,7 @@ const RecurringBookingModal = ({
   };
 
   const getSummaryText = () => {
-    if (!initialData) return "";
+    if (!selectedDate) return "";
 
     const room = rooms.find(r => r.id === selectedRoomId);
     const roomName = room ? room.name : "selected room";
@@ -296,7 +320,7 @@ const RecurringBookingModal = ({
         recurrenceText = `every ${frequency > 1 ? `${frequency} weeks` : "week"} on ${dayNames}`;
         break;
       case "monthly":
-        recurrenceText = `every ${frequency > 1 ? `${frequency} months` : "month"} on day ${initialData.date.getDate()}`;
+        recurrenceText = `every ${frequency > 1 ? `${frequency} months` : "month"} on day ${selectedDate.getDate()}`;
         break;
       case "custom":
         recurrenceText = `every ${frequency} days`;
@@ -310,7 +334,7 @@ const RecurringBookingModal = ({
       endText = `until ${format(endDate, "MMMM do, yyyy")}`;
     }
     
-    return `This booking will repeat ${recurrenceText} from ${initialData.startTime} to ${initialData.endTime}, starting ${format(initialData.date, "MMMM do, yyyy")}, ${endText} in ${roomName}.`;
+    return `This booking will repeat ${recurrenceText} from ${startTime} to ${endTime}, starting ${format(selectedDate, "MMMM do, yyyy")}, ${endText} in ${roomName}.`;
   };
 
   const isRoomAvailableForInstance = (roomId: string, instanceDate: string, startTime: string, endTime: string): boolean => {
@@ -324,9 +348,9 @@ const RecurringBookingModal = ({
   };
 
   const doesRoomMeetRequirements = (room: Room): boolean => {
-    return (!initialData || room.capacity >= initialData.attendees) &&
-      (!initialData?.selectedEquipment.length || 
-        initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+    return room.capacity >= attendees &&
+      (!selectedEquipment.length || 
+        selectedEquipment.every(eq => room.equipment.includes(eq)));
   };
 
   return (
@@ -367,45 +391,85 @@ const RecurringBookingModal = ({
             )}>
               <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
                 <div className="bg-accent/10 p-4 rounded-md">
-                  {initialData && (
-                    <div className="text-sm mb-4 font-medium">
-                      Booking Summary
-                    </div>
-                  )}
+                  <div className="text-sm mb-4 font-medium">
+                    Booking Details
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
+                    {/* Make time fields editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Start Time</Label>
-                      <Input 
-                        value={initialData?.startTime || ""} 
-                        readOnly 
-                        className="bg-background h-9 text-sm"
-                      />
+                      <Select value={startTime} onValueChange={setStartTime}>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Select start time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.slice(0, -1).map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">End Time</Label>
-                      <Input 
-                        value={initialData?.endTime || ""} 
-                        readOnly 
-                        className="bg-background h-9 text-sm"
-                      />
+                      <Select 
+                        value={endTime} 
+                        onValueChange={setEndTime}
+                        disabled={!startTime}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Select end time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.filter(time => time > startTime).map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   
+                    {/* Make date editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Start Date</Label>
-                      <Input 
-                        value={initialData ? format(initialData.date, "PPP") : ""} 
-                        readOnly 
-                        className="bg-background h-9 text-sm"
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-9 text-sm",
+                              !selectedDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            initialFocus
+                            className="pointer-events-auto"
+                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   
+                    {/* Make attendees editable */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Attendees</Label>
                       <Input 
                         type="number" 
-                        value={initialData?.attendees || 2} 
-                        readOnly 
-                        className="bg-background h-9 text-sm"
+                        value={attendees} 
+                        onChange={(e) => setAttendees(parseInt(e.target.value) || 0)} 
+                        min={1}
+                        max={50}
+                        className="h-9 text-sm"
                       />
                     </div>
                   </div>
@@ -419,9 +483,7 @@ const RecurringBookingModal = ({
                     </SelectTrigger>
                     <SelectContent>
                       {rooms
-                        .filter(room => 
-                          !initialData || room.capacity >= initialData.attendees
-                        )
+                        .filter(room => room.capacity >= attendees)
                         .map(room => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name} (Capacity: {room.capacity})
@@ -432,18 +494,18 @@ const RecurringBookingModal = ({
                   </Select>
                 </div>
                 
-                {initialData?.selectedEquipment.length ? (
+                {selectedEquipment.length > 0 && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Required Equipment</Label>
                     <div className="flex flex-wrap gap-1">
-                      {initialData.selectedEquipment.map(eq => (
+                      {selectedEquipment.map(eq => (
                         <Badge key={eq} variant="outline" className="text-xs">
                           {eq}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                ) : null}
+                )}
                 
                 <div className="space-y-4 pt-4 border-t">
                   <div className="flex justify-between items-center">
@@ -506,13 +568,13 @@ const RecurringBookingModal = ({
                       <div className="flex items-center space-x-2 mb-3 p-2 rounded-md hover:bg-accent/10">
                         <RadioGroupItem value="dayOfMonth" id="dayOfMonth" />
                         <Label htmlFor="dayOfMonth" className="cursor-pointer text-sm">
-                          Day {initialData?.date.getDate()} of the month
+                          Day {selectedDate?.getDate() || ""} of the month
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent/10">
                         <RadioGroupItem value="positionDay" id="positionDay" disabled />
                         <Label htmlFor="positionDay" className="cursor-pointer text-sm text-muted-foreground">
-                          First {format(initialData?.date || new Date(), "EEEE")} of the month
+                          First {format(selectedDate || new Date(), "EEEE")} of the month
                         </Label>
                       </div>
                     </RadioGroup>
@@ -564,7 +626,8 @@ const RecurringBookingModal = ({
                                 selected={endDate}
                                 onSelect={setEndDate}
                                 initialFocus
-                                disabled={(date) => initialData ? isBefore(date, initialData.date) : false}
+                                className="pointer-events-auto"
+                                disabled={(date) => selectedDate ? isBefore(date, selectedDate) : false}
                               />
                             </PopoverContent>
                           </Popover>

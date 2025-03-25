@@ -22,7 +22,6 @@ import {
   Presentation, 
   Mic2, 
   StickyNote,
-  RefreshCw
 } from "lucide-react";
 import { format, isAfter, isBefore, isToday, set } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -445,16 +444,17 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 </div>
               )}
               
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full mt-3 bg-primary/10 hover:bg-primary/20 gap-1.5"
-                disabled={!canMakeRecurring}
-                onClick={() => setRecurringModalOpen(true)}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Make this Recurring
-              </Button>
+              {selectedTimeRange?.start && selectedTimeRange?.end && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3 gap-1.5"
+                  onClick={() => setRecurringModalOpen(true)}
+                >
+                  <Calendar className="h-3.5 w-3.5" />
+                  Make this recurring
+                </Button>
+              )}
             </div>
 
             {warningMessage && (
