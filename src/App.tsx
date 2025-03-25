@@ -18,6 +18,7 @@ import Navbar from "./components/Navbar";
 import AdminRoomManagement from "./pages/AdminRoomManagement";
 import AdminRoomForm from "./pages/AdminRoomForm";
 import AdminAllBookings from "./pages/AdminAllBookings";
+import UserManagement from "./pages/UserManagement";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -104,6 +105,15 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute requireAdmin>
                           <AdminAllBookings />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    {/* New User Management Route */}
+                    <Route 
+                      path="/admin/users" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <UserManagement />
                         </ProtectedRoute>
                       } 
                     />
