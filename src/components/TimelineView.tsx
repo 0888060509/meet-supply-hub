@@ -257,13 +257,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const canMakeRecurring = selectedTimeRange !== null && selectedTimeRange.start && selectedTimeRange.end;
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <div className="md:col-span-1">
-        <Card className="shadow-sm">
+    <div className="grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div className="lg:col-span-1 xl:col-span-1">
+        <Card className="shadow-sm sticky top-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Meeting Requirements</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4 p-3 sm:p-4">
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -469,7 +469,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         </Card>
       </div>
       
-      <div className="md:col-span-4">
+      <div className="lg:col-span-4 xl:col-span-5">
         <Card className="shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
