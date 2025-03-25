@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -35,7 +34,16 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon, Clock, ArrowRight, Check, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 
 interface RecurringBookingModalProps {
   isOpen: boolean;
@@ -339,8 +347,8 @@ const RecurringBookingModal = ({
       </AlertDialog>
 
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden bg-white">
-          <DialogHeader className="pb-2 border-b">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden bg-white p-0">
+          <DialogHeader className="p-6 pb-3 border-b">
             <DialogTitle className="text-xl font-semibold">
               {step === 1 ? "Set Up Recurring Booking" : "Review Recurring Booking"}
             </DialogTitle>
@@ -351,55 +359,62 @@ const RecurringBookingModal = ({
             )}
           </DialogHeader>
           
-          <div className="relative overflow-hidden my-2">
+          <div className="relative overflow-hidden p-6 pt-4">
             <div className={cn(
               "transition-all duration-300 transform",
-              step !== 1 && "absolute inset-0",
+              step !== 1 && "absolute inset-0 opacity-0",
               animateTransition && (step === 1 ? "translate-x-0" : "-translate-x-full")
             )}>
-              <div className="space-y-4 py-1 overflow-y-auto max-h-[60vh] px-1">
-                <div className="grid grid-cols-2 gap-4 bg-accent/10 p-3 rounded-md">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Start Time</Label>
-                    <Input 
-                      value={initialData?.startTime || ""} 
-                      readOnly 
-                      className="bg-background h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">End Time</Label>
-                    <Input 
-                      value={initialData?.endTime || ""} 
-                      readOnly 
-                      className="bg-background h-8 text-sm"
-                    />
-                  </div>
-                
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Start Date</Label>
-                    <Input 
-                      value={initialData ? format(initialData.date, "PPP") : ""} 
-                      readOnly 
-                      className="bg-background h-8 text-sm"
-                    />
-                  </div>
-                
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Attendees</Label>
-                    <Input 
-                      type="number" 
-                      value={initialData?.attendees || 2} 
-                      readOnly 
-                      className="bg-background h-8 text-sm"
-                    />
+              <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+                <div className="bg-accent/10 p-4 rounded-md">
+                  {initialData && (
+                    <div className="text-sm mb-4 font-medium">
+                      Booking Summary
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">Start Time</Label>
+                      <Input 
+                        value={initialData?.startTime || ""} 
+                        readOnly 
+                        className="bg-background h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">End Time</Label>
+                      <Input 
+                        value={initialData?.endTime || ""} 
+                        readOnly 
+                        className="bg-background h-9 text-sm"
+                      />
+                    </div>
+                  
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">Start Date</Label>
+                      <Input 
+                        value={initialData ? format(initialData.date, "PPP") : ""} 
+                        readOnly 
+                        className="bg-background h-9 text-sm"
+                      />
+                    </div>
+                  
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">Attendees</Label>
+                      <Input 
+                        type="number" 
+                        value={initialData?.attendees || 2} 
+                        readOnly 
+                        className="bg-background h-9 text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label className="text-sm font-medium">Room</Label>
                   <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                     <SelectContent>
@@ -418,7 +433,7 @@ const RecurringBookingModal = ({
                 </div>
                 
                 {initialData?.selectedEquipment.length ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium">Required Equipment</Label>
                     <div className="flex flex-wrap gap-1">
                       {initialData.selectedEquipment.map(eq => (
@@ -430,11 +445,11 @@ const RecurringBookingModal = ({
                   </div>
                 ) : null}
                 
-                <div className="space-y-3 pt-3 border-t">
+                <div className="space-y-4 pt-4 border-t">
                   <div className="flex justify-between items-center">
                     <Label className="text-sm font-medium">Recurrence Pattern</Label>
                     <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
-                      <SelectTrigger className="w-[140px] h-8">
+                      <SelectTrigger className="w-[140px] h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -455,7 +470,7 @@ const RecurringBookingModal = ({
                         max={99}
                         value={frequency}
                         onChange={(e) => setFrequency(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-16 h-8 text-sm"
+                        className="w-20 h-9 text-sm"
                       />
                       <span className="text-sm text-muted-foreground">
                         {getFrequencyLabel()}
@@ -465,16 +480,16 @@ const RecurringBookingModal = ({
                 </div>
                 
                 {recurrencePattern === "weekly" && (
-                  <div className="space-y-2 p-3 bg-accent/5 rounded-md">
+                  <div className="space-y-3 p-4 bg-accent/5 rounded-md">
                     <Label className="text-sm font-medium">Repeat on</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-3 mt-2 justify-center sm:justify-start">
                       {DAYS_OF_WEEK.map((day) => (
                         <Button
                           key={day.value}
                           type="button"
                           size="sm"
                           variant={weeklyDays.includes(day.value) ? "default" : "outline"}
-                          className="w-9 h-9 rounded-full p-0"
+                          className="w-10 h-10 rounded-full p-0"
                           onClick={() => handleWeeklyDayToggle(day.value)}
                         >
                           {day.label}
@@ -485,16 +500,16 @@ const RecurringBookingModal = ({
                 )}
                 
                 {recurrencePattern === "monthly" && (
-                  <div className="space-y-2 p-3 bg-accent/5 rounded-md">
+                  <div className="space-y-3 p-4 bg-accent/5 rounded-md">
                     <Label className="text-sm font-medium">Monthly Options</Label>
                     <RadioGroup value={monthlyType} onValueChange={setMonthlyType} className="mt-2">
-                      <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex items-center space-x-2 mb-3 p-2 rounded-md hover:bg-accent/10">
                         <RadioGroupItem value="dayOfMonth" id="dayOfMonth" />
                         <Label htmlFor="dayOfMonth" className="cursor-pointer text-sm">
                           Day {initialData?.date.getDate()} of the month
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent/10">
                         <RadioGroupItem value="positionDay" id="positionDay" disabled />
                         <Label htmlFor="positionDay" className="cursor-pointer text-sm text-muted-foreground">
                           First {format(initialData?.date || new Date(), "EEEE")} of the month
@@ -504,54 +519,56 @@ const RecurringBookingModal = ({
                   </div>
                 )}
                 
-                <div className="space-y-3 pt-3 border-t">
+                <div className="space-y-4 pt-4 border-t">
                   <Label className="text-sm font-medium">End Condition</Label>
                   <RadioGroup value={endType} onValueChange={setEndType} className="space-y-3">
-                    <div className="flex items-center space-x-2 bg-accent/5 p-2 rounded-md">
+                    <div className="flex items-center space-x-2 bg-accent/5 p-3 rounded-md">
                       <RadioGroupItem value="occurrences" id="occurrences" />
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="occurrences" className="cursor-pointer text-sm">After</Label>
+                      <div className="flex items-center gap-2 flex-1">
+                        <Label htmlFor="occurrences" className="cursor-pointer text-sm whitespace-nowrap">After</Label>
                         <Input
                           type="number"
                           min={1}
                           max={99}
                           value={occurrences}
                           onChange={(e) => setOccurrences(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-16 h-8 text-sm"
+                          className="w-20 h-9 text-sm mx-1"
                           disabled={endType !== "occurrences"}
                         />
-                        <span className="text-sm text-muted-foreground">occurrences</span>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">occurrences</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 bg-accent/5 p-2 rounded-md">
+                    <div className="flex items-center space-x-2 bg-accent/5 p-3 rounded-md">
                       <RadioGroupItem value="endDate" id="endDate" />
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="endDate" className="cursor-pointer text-sm">On date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={endType !== "endDate"}
-                              className={cn(
-                                "justify-start text-left font-normal w-[160px] h-8 text-sm",
-                                !endDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="h-3.5 w-3.5 mr-2" />
-                              {endDate ? format(endDate, "PPP") : "Pick a date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={endDate}
-                              onSelect={setEndDate}
-                              initialFocus
-                              disabled={(date) => initialData ? isBefore(date, initialData.date) : false}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                      <div className="flex items-center gap-2 flex-1">
+                        <Label htmlFor="endDate" className="cursor-pointer text-sm whitespace-nowrap">On date</Label>
+                        <div className="flex-1">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={endType !== "endDate"}
+                                className={cn(
+                                  "justify-start text-left font-normal w-full h-9 text-sm",
+                                  !endDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                                {endDate ? format(endDate, "PPP") : "Pick a date"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={endDate}
+                                onSelect={setEndDate}
+                                initialFocus
+                                disabled={(date) => initialData ? isBefore(date, initialData.date) : false}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                     </div>
                   </RadioGroup>
@@ -561,31 +578,31 @@ const RecurringBookingModal = ({
             
             <div className={cn(
               "transition-all duration-300 transform",
-              step !== 2 && "absolute inset-0",
+              step !== 2 && "absolute inset-0 opacity-0",
               animateTransition && (step === 2 ? "translate-x-0" : "translate-x-full")
             )}>
-              <div className="space-y-4 max-h-[60vh] overflow-y-auto px-1 py-1">
-                <div className="bg-accent/20 p-3 rounded-md text-sm">
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="bg-accent/20 p-4 rounded-md text-sm">
                   {getSummaryText()}
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="text-sm font-medium flex items-center gap-1">
                     <CalendarIcon className="h-4 w-4" />
                     Generated Booking Instances
                   </Label>
-                  <ScrollArea className="h-[280px] rounded-md border">
-                    <div className="space-y-2 p-2">
+                  <ScrollArea className="h-[300px] rounded-md border p-1">
+                    <div className="space-y-3 p-2">
                       {bookingInstances.length > 0 ? (
                         bookingInstances.map((instance, index) => {
-                          const roomForInstance = rooms.find(r => r.id === instance.roomId);
-                          const originalRoomForInstance = rooms.find(r => r.id === instance.originalRoomId);
+                          const instanceRoom = rooms.find(r => r.id === instance.roomId);
+                          const originalRoom = rooms.find(r => r.id === instance.originalRoomId);
                           
                           return (
                             <div 
                               key={`${instance.date}-${index}`}
                               className={cn(
-                                "p-2.5 rounded-md border flex flex-col space-y-1",
+                                "p-3 rounded-md border flex flex-col space-y-2",
                                 instance.status === "available" && "bg-green-50 border-green-200",
                                 instance.status === "conflicting" && "bg-red-50 border-red-200 animate-pulse",
                                 instance.status === "alternative" && "bg-amber-50 border-amber-200"
@@ -596,14 +613,14 @@ const RecurringBookingModal = ({
                                   <div className="font-medium text-sm">
                                     {format(new Date(instance.date), "MMMM do, yyyy")}
                                   </div>
-                                  <div className="text-xs text-muted-foreground flex items-center">
+                                  <div className="text-xs text-muted-foreground flex items-center mt-1">
                                     <Clock className="h-3 w-3 mr-1" />
                                     {instance.startTime} - {instance.endTime}
                                   </div>
                                   {instance.status === "alternative" && (
                                     <div className="text-xs text-amber-600 mt-1 flex items-center">
                                       <ArrowRight className="h-3 w-3 mr-1" />
-                                      Alternative: {roomForInstance?.name} (instead of {originalRoomForInstance?.name})
+                                      Alternative: {instanceRoom?.name} (instead of {originalRoom?.name})
                                     </div>
                                   )}
                                 </div>
@@ -628,11 +645,11 @@ const RecurringBookingModal = ({
                               
                               {instance.status === "conflicting" && (
                                 <div className="pt-2 mt-1 border-t border-red-200">
-                                  <Label className="text-xs mb-1">Select Alternative Room</Label>
+                                  <Label className="text-xs mb-2 block">Select Alternative Room</Label>
                                   <Select 
                                     onValueChange={(roomId) => handleAlternativeRoomSelect(index, roomId)}
                                   >
-                                    <SelectTrigger className="h-7 text-xs">
+                                    <SelectTrigger className="h-8 text-xs">
                                       <SelectValue placeholder="Choose alternative room" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -661,7 +678,7 @@ const RecurringBookingModal = ({
                           );
                         })
                       ) : (
-                        <div className="p-4 text-center text-muted-foreground text-sm">
+                        <div className="p-6 text-center text-muted-foreground text-sm">
                           No instances generated yet. Please go back and configure the recurrence pattern.
                         </div>
                       )}
@@ -672,7 +689,7 @@ const RecurringBookingModal = ({
             </div>
           </div>
           
-          <DialogFooter className="px-0 pt-4 border-t">
+          <DialogFooter className="p-6 pt-4 border-t">
             {step === 1 ? (
               <div className="w-full flex justify-between">
                 <Button variant="outline" onClick={onClose}>
