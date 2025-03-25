@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -317,18 +318,23 @@ const RecurringBookingModal = ({
     return `This booking will repeat ${recurrenceText} from ${initialData.startTime} to ${initialData.endTime}, starting ${format(initialData.date, "MMMM do, yyyy")}, ${endText} in ${roomName}.`;
   };
 
-  const isAvailable = !bookings.some(booking => 
-    booking.roomId === room.id &&
-    booking.date === instance.date &&
-    ((booking.startTime <= instance.startTime && booking.endTime > instance.startTime) ||
-     (booking.startTime < instance.endTime && booking.endTime >= instance.endTime) ||
-     (booking.startTime >= instance.startTime && booking.endTime <= instance.endTime))
-  );
-                                        
-  const meetsRequirements = 
-    (!initialData || room.capacity >= initialData.attendees) &&
-    (!initialData?.selectedEquipment.length || 
-      initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+  // Helper function to check if a room is available for a specific booking instance
+  const isRoomAvailableForInstance = (roomId: string, instanceDate: string, startTime: string, endTime: string): boolean => {
+    return !bookings.some(booking => 
+      booking.roomId === roomId &&
+      booking.date === instanceDate &&
+      ((booking.startTime <= startTime && booking.endTime > startTime) ||
+       (booking.startTime < endTime && booking.endTime >= endTime) ||
+       (booking.startTime >= startTime && booking.endTime <= endTime))
+    );
+  };
+
+  // Helper function to check if a room meets requirements
+  const doesRoomMeetRequirements = (room: Room): boolean => {
+    return (!initialData || room.capacity >= initialData.attendees) &&
+      (!initialData?.selectedEquipment.length || 
+        initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+  };
 
   return (
     <>
@@ -634,27 +640,23 @@ const RecurringBookingModal = ({
                                     </SelectTrigger>
                                     <SelectContent>
                                       {rooms
-                                        .filter(room => {
+                                        .filter(roomItem => {
                                           // Check if room is available for this timeslot
-                                          const isAvailable = !bookings.some(booking => 
-                                            booking.roomId === room.id &&
-                                            booking.date === instance.date &&
-                                            ((booking.startTime <= instance.startTime && booking.endTime > instance.startTime) ||
-                                             (booking.startTime < instance.endTime && booking.endTime >= instance.endTime) ||
-                                             (booking.startTime >= instance.startTime && booking.endTime <= instance.endTime))
+                                          const isAvailable = isRoomAvailableForInstance(
+                                            roomItem.id, 
+                                            instance.date, 
+                                            instance.startTime, 
+                                            instance.endTime
                                           );
                                           
                                           // Also check capacity and equipment requirements
-                                          const meetsRequirements = 
-                                            (!initialData || room.capacity >= initialData.attendees) &&
-                                            (!initialData?.selectedEquipment.length || 
-                                              initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+                                          const meetsRequirements = doesRoomMeetRequirements(roomItem);
                                             
                                           return isAvailable && meetsRequirements;
                                         })
-                                        .map(room => (
-                                          <SelectItem key={room.id} value={room.id}>
-                                            {room.name} (Capacity: {room.capacity})
+                                        .map(roomItem => (
+                                          <SelectItem key={roomItem.id} value={roomItem.id}>
+                                            {roomItem.name} (Capacity: {roomItem.capacity})
                                           </SelectItem>
                                         ))
                                       }
