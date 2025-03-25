@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format, addDays, addWeeks, addMonths, isAfter, isBefore } from "date-fns";
 import { Room, Booking } from "@/lib/data";
@@ -318,95 +317,104 @@ const RecurringBookingModal = ({
     return `This booking will repeat ${recurrenceText} from ${initialData.startTime} to ${initialData.endTime}, starting ${format(initialData.date, "MMMM do, yyyy")}, ${endText} in ${roomName}.`;
   };
 
+  const isAvailable = !bookings.some(booking => 
+    booking.roomId === room.id &&
+    booking.date === instance.date &&
+    ((booking.startTime <= instance.startTime && booking.endTime > instance.startTime) ||
+     (booking.startTime < instance.endTime && booking.endTime >= instance.endTime) ||
+     (booking.startTime >= instance.startTime && booking.endTime <= instance.endTime))
+  );
+                                        
+  const meetsRequirements = 
+    (!initialData || room.capacity >= initialData.attendees) &&
+    (!initialData?.selectedEquipment.length || 
+      initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-[600px] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden bg-white">
+          <DialogHeader className="pb-2 border-b">
+            <DialogTitle className="text-xl font-semibold">
               {step === 1 ? "Set Up Recurring Booking" : "Review Recurring Booking"}
             </DialogTitle>
             {step === 1 && (
-              <DialogDescription>
+              <DialogDescription className="text-sm text-muted-foreground">
                 Create multiple bookings with a repeating pattern
               </DialogDescription>
             )}
           </DialogHeader>
           
-          <div className="relative overflow-hidden">
+          <div className="relative overflow-hidden my-2">
             {/* Step 1: Input Details */}
             <div className={cn(
               "transition-all duration-300 transform",
               step !== 1 && "absolute inset-0",
               animateTransition && (step === 1 ? "translate-x-0" : "-translate-x-full")
             )}>
-              <div className="space-y-4 py-2">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 py-1 overflow-y-auto max-h-[60vh] px-1">
+                <div className="grid grid-cols-2 gap-4 bg-accent/10 p-3 rounded-md">
                   <div className="space-y-2">
-                    <Label>Start Time</Label>
+                    <Label className="text-xs font-medium">Start Time</Label>
                     <Input 
                       value={initialData?.startTime || ""} 
                       readOnly 
-                      className="bg-muted/50"
+                      className="bg-background h-8 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>End Time</Label>
+                    <Label className="text-xs font-medium">End Time</Label>
                     <Input 
                       value={initialData?.endTime || ""} 
                       readOnly 
-                      className="bg-muted/50"
+                      className="bg-background h-8 text-sm"
+                    />
+                  </div>
+                
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Start Date</Label>
+                    <Input 
+                      value={initialData ? format(initialData.date, "PPP") : ""} 
+                      readOnly 
+                      className="bg-background h-8 text-sm"
+                    />
+                  </div>
+                
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Attendees</Label>
+                    <Input 
+                      type="number" 
+                      value={initialData?.attendees || 2} 
+                      readOnly 
+                      className="bg-background h-8 text-sm"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <div className="flex">
-                    <Input 
-                      value={initialData ? format(initialData.date, "PPP") : ""} 
-                      readOnly 
-                      className="bg-muted/50"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Attendees</Label>
-                    <Input 
-                      type="number" 
-                      value={initialData?.attendees || 2} 
-                      readOnly 
-                      className="bg-muted/50"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Room</Label>
-                    <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a room" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {rooms
-                          .filter(room => 
-                            !initialData || room.capacity >= initialData.attendees
-                          )
-                          .map(room => (
-                            <SelectItem key={room.id} value={room.id}>
-                              {room.name} (Capacity: {room.capacity})
-                            </SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Label className="text-sm font-medium">Room</Label>
+                  <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select a room" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms
+                        .filter(room => 
+                          !initialData || room.capacity >= initialData.attendees
+                        )
+                        .map(room => (
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name} (Capacity: {room.capacity})
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 {initialData?.selectedEquipment.length ? (
                   <div className="space-y-2">
-                    <Label>Required Equipment</Label>
+                    <Label className="text-sm font-medium">Required Equipment</Label>
                     <div className="flex flex-wrap gap-1">
                       {initialData.selectedEquipment.map(eq => (
                         <Badge key={eq} variant="outline" className="text-xs">
@@ -417,32 +425,51 @@ const RecurringBookingModal = ({
                   </div>
                 ) : null}
                 
-                <div className="space-y-2 pt-2 border-t">
-                  <Label>Recurrence Pattern</Label>
-                  <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3 pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm font-medium">Recurrence Pattern</Label>
+                    <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 items-center">
+                    <Label className="text-sm font-medium">Frequency</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={frequency}
+                        onChange={(e) => setFrequency(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-16 h-8 text-sm"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {getFrequencyLabel()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 
                 {recurrencePattern === "weekly" && (
-                  <div className="space-y-2">
-                    <Label>Repeat on</Label>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="space-y-2 p-3 bg-accent/5 rounded-md">
+                    <Label className="text-sm font-medium">Repeat on</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {DAYS_OF_WEEK.map((day) => (
                         <Button
                           key={day.value}
                           type="button"
                           size="sm"
                           variant={weeklyDays.includes(day.value) ? "default" : "outline"}
-                          className="w-10 h-10 rounded-full p-0"
+                          className="w-9 h-9 rounded-full p-0"
                           onClick={() => handleWeeklyDayToggle(day.value)}
                         >
                           {day.label}
@@ -453,18 +480,18 @@ const RecurringBookingModal = ({
                 )}
                 
                 {recurrencePattern === "monthly" && (
-                  <div className="space-y-2">
-                    <Label>Monthly Options</Label>
-                    <RadioGroup value={monthlyType} onValueChange={setMonthlyType}>
-                      <div className="flex items-center space-x-2">
+                  <div className="space-y-2 p-3 bg-accent/5 rounded-md">
+                    <Label className="text-sm font-medium">Monthly Options</Label>
+                    <RadioGroup value={monthlyType} onValueChange={setMonthlyType} className="mt-2">
+                      <div className="flex items-center space-x-2 mb-2">
                         <RadioGroupItem value="dayOfMonth" id="dayOfMonth" />
-                        <Label htmlFor="dayOfMonth" className="cursor-pointer">
+                        <Label htmlFor="dayOfMonth" className="cursor-pointer text-sm">
                           Day {initialData?.date.getDate()} of the month
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="positionDay" id="positionDay" disabled />
-                        <Label htmlFor="positionDay" className="cursor-pointer text-muted-foreground">
+                        <Label htmlFor="positionDay" className="cursor-pointer text-sm text-muted-foreground">
                           First {format(initialData?.date || new Date(), "EEEE")} of the month
                         </Label>
                       </div>
@@ -472,48 +499,29 @@ const RecurringBookingModal = ({
                   </div>
                 )}
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Frequency</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        min={1}
-                        max={99}
-                        value={frequency}
-                        onChange={(e) => setFrequency(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-16"
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {getFrequencyLabel()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3 pt-2 border-t">
-                  <Label>End Condition</Label>
-                  <RadioGroup value={endType} onValueChange={setEndType}>
-                    <div className="flex items-center space-x-2">
+                <div className="space-y-3 pt-3 border-t">
+                  <Label className="text-sm font-medium">End Condition</Label>
+                  <RadioGroup value={endType} onValueChange={setEndType} className="space-y-3">
+                    <div className="flex items-center space-x-2 bg-accent/5 p-2 rounded-md">
                       <RadioGroupItem value="occurrences" id="occurrences" />
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="occurrences" className="cursor-pointer">After</Label>
+                        <Label htmlFor="occurrences" className="cursor-pointer text-sm">After</Label>
                         <Input
                           type="number"
                           min={1}
                           max={99}
                           value={occurrences}
                           onChange={(e) => setOccurrences(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="w-16"
+                          className="w-16 h-8 text-sm"
                           disabled={endType !== "occurrences"}
                         />
                         <span className="text-sm text-muted-foreground">occurrences</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 mt-2">
+                    <div className="flex items-center space-x-2 bg-accent/5 p-2 rounded-md">
                       <RadioGroupItem value="endDate" id="endDate" />
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="endDate" className="cursor-pointer">On date</Label>
+                        <Label htmlFor="endDate" className="cursor-pointer text-sm">On date</Label>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
@@ -521,7 +529,7 @@ const RecurringBookingModal = ({
                               size="sm"
                               disabled={endType !== "endDate"}
                               className={cn(
-                                "justify-start text-left font-normal w-[160px]",
+                                "justify-start text-left font-normal w-[160px] h-8 text-sm",
                                 !endDate && "text-muted-foreground"
                               )}
                             >
@@ -553,143 +561,151 @@ const RecurringBookingModal = ({
               step !== 2 && "absolute inset-0",
               animateTransition && (step === 2 ? "translate-x-0" : "translate-x-full")
             )}>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto px-1 py-1">
                 <div className="bg-accent/20 p-3 rounded-md text-sm">
                   {getSummaryText()}
                 </div>
                 
-                <Label>Generated Booking Instances</Label>
-                <ScrollArea className="h-[300px] rounded-md border">
-                  <div className="space-y-2 p-2">
-                    {bookingInstances.length > 0 ? (
-                      bookingInstances.map((instance, index) => {
-                        const room = rooms.find(r => r.id === instance.roomId);
-                        const originalRoom = rooms.find(r => r.id === instance.originalRoomId);
-                        
-                        return (
-                          <div 
-                            key={`${instance.date}-${index}`}
-                            className={cn(
-                              "p-3 rounded-md border flex flex-col space-y-1",
-                              instance.status === "available" && "bg-green-50 border-green-200",
-                              instance.status === "conflicting" && "bg-red-50 border-red-200 animate-pulse",
-                              instance.status === "alternative" && "bg-amber-50 border-amber-200"
-                            )}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="font-medium">
-                                  {format(new Date(instance.date), "MMMM do, yyyy")}
-                                </div>
-                                <div className="text-sm text-muted-foreground flex items-center">
-                                  <Clock className="h-3.5 w-3.5 mr-1" />
-                                  {instance.startTime} - {instance.endTime}
-                                </div>
-                                {instance.status === "alternative" && (
-                                  <div className="text-xs text-amber-600 mt-1 flex items-center">
-                                    <ArrowRight className="h-3 w-3 mr-1" />
-                                    Alternative: {room?.name} (instead of {originalRoom?.name})
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Generated Booking Instances
+                  </Label>
+                  <ScrollArea className="h-[280px] rounded-md border">
+                    <div className="space-y-2 p-2">
+                      {bookingInstances.length > 0 ? (
+                        bookingInstances.map((instance, index) => {
+                          const room = rooms.find(r => r.id === instance.roomId);
+                          const originalRoom = rooms.find(r => r.id === instance.originalRoomId);
+                          
+                          return (
+                            <div 
+                              key={`${instance.date}-${index}`}
+                              className={cn(
+                                "p-2.5 rounded-md border flex flex-col space-y-1",
+                                instance.status === "available" && "bg-green-50 border-green-200",
+                                instance.status === "conflicting" && "bg-red-50 border-red-200 animate-pulse",
+                                instance.status === "alternative" && "bg-amber-50 border-amber-200"
+                              )}
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {format(new Date(instance.date), "MMMM do, yyyy")}
                                   </div>
-                                )}
+                                  <div className="text-xs text-muted-foreground flex items-center">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {instance.startTime} - {instance.endTime}
+                                  </div>
+                                  {instance.status === "alternative" && (
+                                    <div className="text-xs text-amber-600 mt-1 flex items-center">
+                                      <ArrowRight className="h-3 w-3 mr-1" />
+                                      Alternative: {room?.name} (instead of {originalRoom?.name})
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center">
+                                  {instance.status === "available" && (
+                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                      <Check className="h-3 w-3 mr-1" /> Available
+                                    </Badge>
+                                  )}
+                                  {instance.status === "conflicting" && (
+                                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200 text-xs">
+                                      <AlertTriangle className="h-3 w-3 mr-1" /> Conflicting
+                                    </Badge>
+                                  )}
+                                  {instance.status === "alternative" && (
+                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                                      <Check className="h-3 w-3 mr-1" /> Alternative Selected
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center">
-                                {instance.status === "available" && (
-                                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                                    <Check className="h-3 w-3 mr-1" /> Available
-                                  </Badge>
-                                )}
-                                {instance.status === "conflicting" && (
-                                  <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
-                                    <AlertTriangle className="h-3 w-3 mr-1" /> Conflicting
-                                  </Badge>
-                                )}
-                                {instance.status === "alternative" && (
-                                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
-                                    <Check className="h-3 w-3 mr-1" /> Alternative Selected
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {instance.status === "conflicting" && (
-                              <div className="pt-2 mt-1 border-t border-red-200">
-                                <Label className="text-xs mb-1">Select Alternative Room</Label>
-                                <Select 
-                                  onValueChange={(roomId) => handleAlternativeRoomSelect(index, roomId)}
-                                >
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue placeholder="Choose alternative room" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {rooms
-                                      .filter(room => {
-                                        // Check if room is available for this timeslot
-                                        const isAvailable = !bookings.some(booking => 
-                                          booking.roomId === room.id &&
-                                          booking.date === instance.date &&
-                                          ((booking.startTime <= instance.startTime && booking.endTime > instance.startTime) ||
-                                           (booking.startTime < instance.endTime && booking.endTime >= instance.endTime) ||
-                                           (booking.startTime >= instance.startTime && booking.endTime <= instance.endTime))
-                                        );
-                                        
-                                        // Also check capacity and equipment requirements
-                                        const meetsRequirements = 
-                                          (!initialData || room.capacity >= initialData.attendees) &&
-                                          (!initialData?.selectedEquipment.length || 
-                                            initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
+                              
+                              {instance.status === "conflicting" && (
+                                <div className="pt-2 mt-1 border-t border-red-200">
+                                  <Label className="text-xs mb-1">Select Alternative Room</Label>
+                                  <Select 
+                                    onValueChange={(roomId) => handleAlternativeRoomSelect(index, roomId)}
+                                  >
+                                    <SelectTrigger className="h-7 text-xs">
+                                      <SelectValue placeholder="Choose alternative room" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {rooms
+                                        .filter(room => {
+                                          // Check if room is available for this timeslot
+                                          const isAvailable = !bookings.some(booking => 
+                                            booking.roomId === room.id &&
+                                            booking.date === instance.date &&
+                                            ((booking.startTime <= instance.startTime && booking.endTime > instance.startTime) ||
+                                             (booking.startTime < instance.endTime && booking.endTime >= instance.endTime) ||
+                                             (booking.startTime >= instance.startTime && booking.endTime <= instance.endTime))
+                                          );
+                                          
+                                          // Also check capacity and equipment requirements
+                                          const meetsRequirements = 
+                                            (!initialData || room.capacity >= initialData.attendees) &&
+                                            (!initialData?.selectedEquipment.length || 
+                                              initialData.selectedEquipment.every(eq => room.equipment.includes(eq)));
                                             
-                                        return isAvailable && meetsRequirements;
-                                      })
-                                      .map(room => (
-                                        <SelectItem key={room.id} value={room.id}>
-                                          {room.name} (Capacity: {room.capacity})
-                                        </SelectItem>
-                                      ))
-                                    }
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="p-4 text-center text-muted-foreground">
-                        No booking instances generated. Please adjust your recurrence settings.
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-                
-                {bookingInstances.some(instance => instance.status === "conflicting") && (
-                  <div className="text-xs text-muted-foreground flex items-center">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mr-1" />
-                    Please resolve all conflicts by selecting alternative rooms
-                  </div>
-                )}
+                                          return isAvailable && meetsRequirements;
+                                        })
+                                        .map(room => (
+                                          <SelectItem key={room.id} value={room.id}>
+                                            {room.name} (Capacity: {room.capacity})
+                                          </SelectItem>
+                                        ))
+                                      }
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-center text-muted-foreground">
+                          No booking instances generated. Please adjust your recurrence settings.
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  
+                  {bookingInstances.some(instance => instance.status === "conflicting") && (
+                    <div className="text-xs text-muted-foreground flex items-center p-2 bg-amber-50 rounded-md border border-amber-200">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mr-1.5" />
+                      Please resolve all conflicts by selecting alternative rooms
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="border-t pt-3 mt-2">
             {step === 1 ? (
               <>
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
                 <Button 
                   onClick={handleNext}
                   disabled={!isFormValid()}
+                  size="sm"
+                  className="px-6"
                 >
                   Next
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handleBack}>Back</Button>
+                <Button variant="outline" size="sm" onClick={handleBack}>Back</Button>
                 <Button 
                   onClick={handleConfirm}
                   disabled={!isReviewValid()}
+                  size="sm"
                   className={cn(
-                    "transition-transform",
+                    "transition-transform px-6",
                     isReviewValid() && "hover:scale-105"
                   )}
                 >
