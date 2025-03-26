@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,9 @@ import {
   Plus, 
   Search, 
   Clipboard,
-  ArrowUpDown
+  ArrowUpDown,
+  Link as LinkIcon,
+  ExternalLink
 } from "lucide-react";
 import { 
   Dialog, 
@@ -50,14 +53,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 const mockStationeryItems = [
-  { id: "1", name: "Ballpoint Pens", description: "Blue ink ballpoint pens", stockQuantity: 45 },
-  { id: "2", name: "Notebooks", description: "A5 spiral notebooks, lined", stockQuantity: 32 },
-  { id: "3", name: "Sticky Notes", description: "3x3 yellow sticky notes, pack of 100", stockQuantity: 18 },
-  { id: "4", name: "Highlighters", description: "Assorted colors, pack of 5", stockQuantity: 7 },
-  { id: "5", name: "Staplers", description: "Desktop staplers, black", stockQuantity: 12 },
-  { id: "6", name: "Paper Clips", description: "Small metal paper clips, box of 100", stockQuantity: 50 },
-  { id: "7", name: "Folders", description: "Letter size manila folders", stockQuantity: 25 },
-  { id: "8", name: "Whiteboard Markers", description: "Dry erase markers, black", stockQuantity: 3 },
+  { id: "1", name: "Ballpoint Pens", description: "Blue ink ballpoint pens", stockQuantity: 45, linkReference: "https://example.com/pens" },
+  { id: "2", name: "Notebooks", description: "A5 spiral notebooks, lined", stockQuantity: 32, linkReference: "https://example.com/notebooks" },
+  { id: "3", name: "Sticky Notes", description: "3x3 yellow sticky notes, pack of 100", stockQuantity: 18, linkReference: "" },
+  { id: "4", name: "Highlighters", description: "Assorted colors, pack of 5", stockQuantity: 7, linkReference: "https://example.com/highlighters" },
+  { id: "5", name: "Staplers", description: "Desktop staplers, black", stockQuantity: 12, linkReference: "" },
+  { id: "6", name: "Paper Clips", description: "Small metal paper clips, box of 100", stockQuantity: 50, linkReference: "https://example.com/paperclips" },
+  { id: "7", name: "Folders", description: "Letter size manila folders", stockQuantity: 25, linkReference: "https://example.com/folders" },
+  { id: "8", name: "Whiteboard Markers", description: "Dry erase markers, black", stockQuantity: 3, linkReference: "" },
 ];
 
 interface StationeryItem {
@@ -65,6 +68,7 @@ interface StationeryItem {
   name: string;
   description: string;
   stockQuantity: number;
+  linkReference: string;
 }
 
 const StationeryManagement = () => {
@@ -83,6 +87,7 @@ const StationeryManagement = () => {
     name: "",
     description: "",
     stockQuantity: 0,
+    linkReference: "",
   });
   
   const filteredItems = stationeryItems.filter(item => {
@@ -129,11 +134,18 @@ const StationeryManagement = () => {
       return;
     }
     
+    // Validate URL if provided
+    if (formData.linkReference && !isValidUrl(formData.linkReference)) {
+      toast.error("Please enter a valid URL starting with http:// or https://");
+      return;
+    }
+    
     const newItem: StationeryItem = {
       id: String(stationeryItems.length + 1),
       name: formData.name,
       description: formData.description,
       stockQuantity: formData.stockQuantity,
+      linkReference: formData.linkReference,
     };
     
     setStationeryItems([...stationeryItems, newItem]);
@@ -152,6 +164,12 @@ const StationeryManagement = () => {
     
     if (formData.stockQuantity < 0) {
       toast.error("Stock quantity cannot be negative");
+      return;
+    }
+    
+    // Validate URL if provided
+    if (formData.linkReference && !isValidUrl(formData.linkReference)) {
+      toast.error("Please enter a valid URL starting with http:// or https://");
       return;
     }
     
@@ -179,6 +197,7 @@ const StationeryManagement = () => {
       name: "",
       description: "",
       stockQuantity: 0,
+      linkReference: "",
     });
     setCurrentItem(null);
   };
@@ -189,6 +208,7 @@ const StationeryManagement = () => {
       name: item.name,
       description: item.description,
       stockQuantity: item.stockQuantity,
+      linkReference: item.linkReference,
     });
     setIsEditModalOpen(true);
   };
@@ -196,6 +216,32 @@ const StationeryManagement = () => {
   const openDeleteDialog = (item: StationeryItem) => {
     setCurrentItem(item);
     setIsDeleteDialogOpen(true);
+  };
+  
+  const openLink = (url: string) => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+  
+  const isValidUrl = (url: string) => {
+    try {
+      const newUrl = new URL(url);
+      return newUrl.protocol === 'http:' || newUrl.protocol === 'https:';
+    } catch (err) {
+      return false;
+    }
+  };
+  
+  const truncateUrl = (url: string, maxLength = 25) => {
+    if (!url) return '';
+    if (url.length <= maxLength) return url;
+    
+    // Remove protocol for display
+    let displayUrl = url.replace(/^https?:\/\//, '');
+    
+    if (displayUrl.length <= maxLength) return displayUrl;
+    return displayUrl.substring(0, maxLength) + '...';
   };
   
   return (
@@ -252,7 +298,7 @@ const StationeryManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead 
-                  className="cursor-pointer w-[30%]" 
+                  className="cursor-pointer w-[25%]" 
                   onClick={() => toggleSort("name")}
                 >
                   <div className="flex items-center">
@@ -260,14 +306,20 @@ const StationeryManagement = () => {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[40%]">Description</TableHead>
+                <TableHead className="w-[30%]">Description</TableHead>
                 <TableHead 
-                  className="cursor-pointer w-[15%]" 
+                  className="cursor-pointer w-[10%]" 
                   onClick={() => toggleSort("stockQuantity")}
                 >
                   <div className="flex items-center">
                     Stock
                     <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[20%]">
+                  <div className="flex items-center">
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Link Reference
                   </div>
                 </TableHead>
                 <TableHead className="w-[15%] text-right">Actions</TableHead>
@@ -279,26 +331,26 @@ const StationeryManagement = () => {
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.description}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <span className="mr-2">{item.stockQuantity}</span>
-                      {item.stockQuantity === 0 ? (
-                        <Badge variant="destructive">Out of stock</Badge>
-                      ) : item.stockQuantity <= 10 ? (
-                        <Badge variant="outline" className="bg-amber-500 text-white border-amber-500">Low stock</Badge>
-                      ) : null}
-                    </div>
-                    <div className="w-full h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${
-                          item.stockQuantity === 0 
-                            ? 'bg-red-500' 
-                            : item.stockQuantity <= 10 
-                              ? 'bg-amber-500' 
-                              : 'bg-green-500'
-                        }`}
-                        style={{ width: `${Math.min(item.stockQuantity * 2, 100)}%` }}
-                      ></div>
-                    </div>
+                    {item.stockQuantity === 0 ? (
+                      <Badge variant="destructive">Out of stock</Badge>
+                    ) : (
+                      item.stockQuantity
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.linkReference ? (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex items-center text-blue-600 hover:text-blue-800 p-0 h-auto font-normal"
+                        onClick={() => openLink(item.linkReference)}
+                      >
+                        <span className="mr-1">{truncateUrl(item.linkReference)}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground italic">No link available</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -371,6 +423,20 @@ const StationeryManagement = () => {
                 onChange={(e) => setFormData({...formData, stockQuantity: parseInt(e.target.value) || 0})}
               />
             </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="linkReference">Link Reference</Label>
+              <Input
+                id="linkReference"
+                type="url"
+                placeholder="e.g., https://example.com/product"
+                value={formData.linkReference}
+                onChange={(e) => setFormData({...formData, linkReference: e.target.value})}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter a URL starting with http:// or https://
+              </p>
+            </div>
           </div>
           
           <DialogFooter>
@@ -425,6 +491,20 @@ const StationeryManagement = () => {
                 value={formData.stockQuantity}
                 onChange={(e) => setFormData({...formData, stockQuantity: parseInt(e.target.value) || 0})}
               />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-linkReference">Link Reference</Label>
+              <Input
+                id="edit-linkReference"
+                type="url"
+                placeholder="e.g., https://example.com/product"
+                value={formData.linkReference}
+                onChange={(e) => setFormData({...formData, linkReference: e.target.value})}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter a URL starting with http:// or https://
+              </p>
             </div>
           </div>
           
