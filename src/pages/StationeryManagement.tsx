@@ -13,24 +13,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supplies } from "@/lib/data";
+import { supplies, Supply } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
-// Define a type for stationery items
-interface StationeryItem {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  inStock: number;
-  image?: string;
+// Extend the Supply type with an optional description field
+interface StationeryItem extends Supply {
+  description?: string;
 }
 
 const StationeryManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [stationeryItems, setStationeryItems] = useState<StationeryItem[]>(supplies);
+  
+  // Map the supplies data to StationeryItem array, adding description if missing
+  const initialItems: StationeryItem[] = supplies.map(item => ({
+    ...item,
+    description: item.name // Use name as description if it's missing
+  }));
+  
+  const [stationeryItems, setStationeryItems] = useState<StationeryItem[]>(initialItems);
 
   const handleBack = () => {
     navigate(-1);
@@ -44,7 +46,7 @@ const StationeryManagement = () => {
     (item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddItem = () => {
@@ -138,7 +140,7 @@ const StationeryManagement = () => {
                           <div>
                             <div className="font-medium">{item.name}</div>
                             <div className="text-sm text-muted-foreground line-clamp-1">
-                              {item.description}
+                              {item.description || item.name}
                             </div>
                           </div>
                         </div>
