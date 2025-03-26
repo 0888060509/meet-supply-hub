@@ -1,29 +1,107 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
 
+// Thêm hàm chuyển đổi tiếng Việt có dấu thành không dấu
+const removeAccents = (str: string) => {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+};
+
 export const getAllUsers = async (req: Request, res: Response) => {
+  const client = await pool.connect();
   try {
-    const result = await pool.query(`
+    const { page = 1, pageSize = 10, search, roleFilter, statusFilter, sortBy, sortOrder = 'asc' } = req.query;
+    const offset = (Number(page) - 1) * Number(pageSize);
+    const limit = Number(pageSize);
+
+    let whereClause = '';
+    const queryParams: any[] = [];
+    let paramCount = 1;
+
+    if (search) {
+      const searchTerm = search as string;
+      whereClause = `WHERE (
+        u.name ILIKE $${paramCount} OR
+        u.username ILIKE $${paramCount} OR
+        u.email ILIKE $${paramCount}
+      )`;
+      queryParams.push(`%${searchTerm}%`);
+      paramCount++;
+    }
+
+    if (roleFilter) {
+      whereClause += whereClause ? ' AND' : 'WHERE';
+      whereClause += ` r.name = $${paramCount}`;
+      queryParams.push(roleFilter);
+      paramCount++;
+    }
+
+    if (statusFilter) {
+      whereClause += whereClause ? ' AND' : 'WHERE';
+      whereClause += ` u.status = $${paramCount}`;
+      queryParams.push(statusFilter);
+      paramCount++;
+    }
+
+    // Xác định cột sắp xếp
+    let orderByClause = '';
+    if (sortBy) {
+      const validSortFields = ['name', 'username', 'email', 'created_at', 'last_login'];
+      if (validSortFields.includes(sortBy as string)) {
+        orderByClause = `ORDER BY u.${sortBy} ${sortOrder === 'desc' ? 'DESC' : 'ASC'}`;
+      }
+    }
+
+    // Query đếm tổng số bản ghi
+    const countQuery = `
+      SELECT COUNT(DISTINCT u.id)
+      FROM users u
+      LEFT JOIN user_roles ur ON u.id = ur.user_id
+      LEFT JOIN roles r ON ur.role_id = r.id
+      ${whereClause}
+    `;
+
+    const countResult = await client.query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].count);
+
+    // Query chính với sắp xếp và phân trang
+    const query = `
       SELECT 
-        u.id, 
-        u.username, 
+        u.id,
+        u.username,
         u.name,
         u.email,
         u.status,
         u.created_at,
         u.last_login,
         u.login_count,
-        ARRAY_AGG(r.name) as roles
+        array_agg(DISTINCT r.name) as roles
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
+      ${whereClause}
       GROUP BY u.id, u.username, u.name, u.email, u.status, u.created_at, u.last_login, u.login_count
-      ORDER BY u.created_at DESC
-    `);
-    res.json(result.rows);
+      ${orderByClause}
+      ${limit ? `LIMIT ${limit} OFFSET ${offset}` : ''}
+    `;
+
+    console.log('Query:', query);
+    console.log('Params:', queryParams);
+
+    const result = await client.query(query, queryParams);
+    console.log('Results:', result.rows.length);
+    console.log('Total:', total);
+
+    res.json({
+      data: result.rows,
+      total,
+      page: Number(page),
+      pageSize: Number(pageSize)
+    });
   } catch (error) {
-    console.error('Get users error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error in getAllUsers:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    client.release();
   }
 };
 
@@ -92,12 +170,62 @@ export const updateUser = async (req: Request, res: Response) => {
     await client.query('BEGIN');
 
     const { id } = req.params;
-    const { username, name, roles } = req.body;
+    const { username, name, email, roles } = req.body;
+
+    // Validate required fields
+    if (!username || !name || !email) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ 
+        error: 'Validation error',
+        errors: {
+          username: !username ? 'Username is required' : undefined,
+          name: !name ? 'Name is required' : undefined,
+          email: !email ? 'Email is required' : undefined
+        }
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        error: 'Validation error',
+        errors: {
+          email: 'Invalid email format'
+        }
+      });
+    }
+
+    // Check if username or email already exists for other users
+    const duplicateCheck = await client.query(
+      'SELECT id, username, email FROM users WHERE (username = $1 OR email = $2) AND id != $3',
+      [username, email, id]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      const errors: { username?: string; email?: string } = {};
+      
+      duplicateCheck.rows.forEach(row => {
+        if (row.username === username) {
+          errors.username = 'Username already exists';
+        }
+        if (row.email === email) {
+          errors.email = 'Email already exists';
+        }
+      });
+
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        error: 'Validation error',
+        errors
+      });
+    }
 
     // Update user
     const userResult = await client.query(
-      'UPDATE users SET username = $1, name = $2 WHERE id = $3 RETURNING id, username, name, created_at',
-      [username, name, id]
+      'UPDATE users SET username = $1, name = $2, email = $3 WHERE id = $4 RETURNING id, username, name, email, created_at',
+      [username, name, email, id]
     );
 
     if (userResult.rows.length === 0) {
@@ -127,14 +255,18 @@ export const updateUser = async (req: Request, res: Response) => {
       SELECT 
         u.id, 
         u.username, 
-        u.name, 
+        u.name,
+        u.email,
+        u.status,
         u.created_at,
+        u.last_login,
+        u.login_count,
         ARRAY_AGG(r.name) as roles
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
       WHERE u.id = $1
-      GROUP BY u.id, u.username, u.name, u.created_at
+      GROUP BY u.id, u.username, u.name, u.email, u.status, u.created_at, u.last_login, u.login_count
     `, [id]);
 
     await client.query('COMMIT');
@@ -220,21 +352,28 @@ export const updateUserStatus = async (req: Request, res: Response) => {
 
 export const checkDuplicateFields = async (req: Request, res: Response) => {
   try {
-    const { username, email } = req.body;
+    const { username, email, userId } = req.body;
     const client = await pool.connect();
 
     try {
+      let usernameQuery = 'SELECT id FROM users WHERE username = $1';
+      let emailQuery = 'SELECT id FROM users WHERE email = $1';
+      let queryParams: any[] = [];
+
+      // Nếu có userId (trường hợp update), loại trừ user hiện tại
+      if (userId) {
+        usernameQuery += ' AND id != $2';
+        emailQuery += ' AND id != $2';
+        queryParams = [username, userId];
+      } else {
+        queryParams = [username];
+      }
+
       // Kiểm tra username
-      const usernameResult = await client.query(
-        'SELECT id FROM users WHERE username = $1',
-        [username]
-      );
+      const usernameResult = await client.query(usernameQuery, queryParams);
 
       // Kiểm tra email
-      const emailResult = await client.query(
-        'SELECT id FROM users WHERE email = $1',
-        [email]
-      );
+      const emailResult = await client.query(emailQuery, [email, ...(userId ? [userId] : [])]);
 
       res.json({
         duplicateUsername: usernameResult.rows.length > 0,

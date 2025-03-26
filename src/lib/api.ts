@@ -34,6 +34,23 @@ export interface LoginResponse {
   user: User;
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface GetUsersParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  roleFilter?: string;
+  statusFilter?: string;
+  sortBy?: 'name' | 'username' | 'email' | 'created_at' | 'last_login';
+  sortOrder?: 'asc' | 'desc';
+}
+
 export const apiClient = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>('/auth/login', { username, password });
@@ -45,8 +62,8 @@ export const apiClient = {
     return response.data;
   },
 
-  getUsers: async (): Promise<User[]> => {
-    const response = await api.get<User[]>('/users');
+  getUsers: async (params: GetUsersParams = {}): Promise<PaginatedResponse<User>> => {
+    const response = await api.get<PaginatedResponse<User>>('/users', { params });
     return response.data;
   },
 
@@ -64,8 +81,8 @@ export const apiClient = {
     await api.delete(`/users/${id}`);
   },
 
-  updateUserStatus: async (id: string, status: 'active' | 'inactive'): Promise<User> => {
-    const response = await api.post<User>(`/users/${id}/status`, { status });
+  updateUserStatus: async (userId: string, status: 'active' | 'inactive'): Promise<User> => {
+    const response = await api.patch(`/users/${userId}/status`, { status });
     return response.data;
   },
 

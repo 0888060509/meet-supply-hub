@@ -1,33 +1,33 @@
-
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Inbox } from "lucide-react";
 
 interface TableEmptyStateProps {
   message: string;
-  actionLabel?: string;
-  onAction?: () => void;
+  actionLabel: string;
+  onAction: () => void;
   filterActive?: boolean;
 }
 
-const TableEmptyState = ({ 
-  message, 
-  actionLabel, 
+export const TableEmptyState = ({
+  message,
+  actionLabel,
   onAction,
-  filterActive = false 
+  filterActive
 }: TableEmptyStateProps) => {
   return (
-    <div className="border rounded-md p-8 text-center">
-      <p className="text-muted-foreground mb-4">
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="p-3 bg-muted rounded-full mb-4">
+        <Inbox className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold mb-2">
+        {filterActive ? "Data not found" : "Data not available"}
+      </h3>
+      <p className="text-muted-foreground mb-4 max-w-sm">
         {message}
       </p>
-      {!filterActive && actionLabel && onAction && (
-        <Button onClick={onAction}>
-          <Plus className="mr-2 h-4 w-4" /> {actionLabel}
-        </Button>
-      )}
+      <Button onClick={onAction}>
+        {actionLabel}
+      </Button>
     </div>
   );
-};
-
-export default TableEmptyState;
+}; 
