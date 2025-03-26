@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { rooms } from "@/lib/data";
@@ -17,7 +16,7 @@ import {
   ResizableHandle
 } from "@/components/ui/resizable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +28,6 @@ const RoomDetails = () => {
   const [pendingBooking, setPendingBooking] = useState<BookingFormData | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   
-  // If room not found, redirect to rooms page
   useEffect(() => {
     if (!room && id) {
       toast.error("Room not found", {
@@ -39,7 +37,6 @@ const RoomDetails = () => {
     }
   }, [id, room, navigate]);
   
-  // Reset booking success state after 5 seconds
   useEffect(() => {
     let timeout: number;
     if (bookingSuccess) {
@@ -66,7 +63,6 @@ const RoomDetails = () => {
     setBookingOpen(false);
     setConfirmationOpen(true);
     
-    // Provide immediate feedback
     toast.success("Booking details submitted!", {
       description: "Just one more step to confirm your reservation"
     });
@@ -74,7 +70,6 @@ const RoomDetails = () => {
   
   const handleConfirmBooking = () => {
     if (pendingBooking) {
-      // Here you would typically save the booking to your backend
       setBookingSuccess(true);
       toast.success(`Room booked successfully!`, {
         description: `${room.name} is now reserved for your meeting on ${pendingBooking.date}`
@@ -82,7 +77,6 @@ const RoomDetails = () => {
       setConfirmationOpen(false);
       setPendingBooking(null);
       
-      // Redirect to my bookings page after a short delay
       setTimeout(() => {
         navigate("/rooms?tab=bookings");
       }, 2000);
@@ -126,11 +120,9 @@ const RoomDetails = () => {
       </div>
       
       <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
-        {/* Room Image and Details Panel */}
         <ResizablePanel defaultSize={70} minSize={40}>
           <div className="h-full p-6">
             <div className="grid grid-cols-1 gap-6 h-full">
-              {/* Room Image */}
               <Card className="overflow-hidden">
                 <div 
                   className="h-64 md:h-80 bg-accent/30 flex items-center justify-center"
@@ -146,7 +138,6 @@ const RoomDetails = () => {
                 </div>
               </Card>
 
-              {/* Room Description */}
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-xl font-semibold mb-2">About this room</h2>
@@ -180,10 +171,8 @@ const RoomDetails = () => {
           </div>
         </ResizablePanel>
         
-        {/* Resize Handle */}
         <ResizableHandle withHandle />
         
-        {/* Sidebar Panel */}
         <ResizablePanel defaultSize={30} minSize={25}>
           <div className="h-full p-6">
             <RoomBookingSidebar />
@@ -191,7 +180,6 @@ const RoomDetails = () => {
         </ResizablePanel>
       </ResizablePanelGroup>
       
-      {/* Booking Dialog */}
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <BookingCalendar
@@ -203,7 +191,6 @@ const RoomDetails = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Confirmation Dialog */}
       <Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
         <DialogContent className="sm:max-w-[500px]">
           {pendingBooking && (
