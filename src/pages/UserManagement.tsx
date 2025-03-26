@@ -9,8 +9,10 @@ import SettingsSidebar from "@/components/SettingsSidebar";
 import ManagementHeader from "@/components/ManagementHeader";
 import ManagementToolbar from "@/components/ManagementToolbar";
 import TableEmptyState from "@/components/TableEmptyState";
+import { AddUserModal } from "@/components/AddUserModal";
+import { EditUserModal } from "@/components/EditUserModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
-// Mock user data - would be replaced with actual API calls
 const initialUsers = [{
   id: "1",
   username: "admin",
@@ -55,7 +57,6 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<null | typeof initialUsers[0]>(null);
   const usersPerPage = 10;
 
-  // Filter users based on search, role, and status
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -225,34 +226,45 @@ const UserManagement = () => {
             />
           )}
 
-          {/* Keep modals for users (AddUserModal, EditUserModal, UserProfileModal) */}
-          <AddUserModal isOpen={isAddUserModalOpen} onClose={() => setIsAddUserModalOpen(false)} onAddUser={(newUser: any) => {
-            setUsers(prevUsers => [...prevUsers, {
-              ...newUser,
-              id: Date.now().toString()
-            }]);
-            toast({
-              title: "Success",
-              description: "User created successfully"
-            });
-            setIsAddUserModalOpen(false);
-          }} existingUsers={users} />
+          <AddUserModal 
+            isOpen={isAddUserModalOpen} 
+            onClose={() => setIsAddUserModalOpen(false)} 
+            onAddUser={(newUser) => {
+              setUsers(prevUsers => [...prevUsers, {
+                ...newUser,
+                id: Date.now().toString()
+              }]);
+              toast.success("User created successfully");
+              setIsAddUserModalOpen(false);
+            }} 
+            existingUsers={users} 
+          />
           
-          {selectedUser && <>
-              <EditUserModal isOpen={isEditUserModalOpen} onClose={() => setIsEditUserModalOpen(false)} onUpdateUser={(updatedUser: any) => {
-            setUsers(prevUsers => prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user));
-            toast({
-              title: "Success",
-              description: "User updated successfully"
-            });
-            setIsEditUserModalOpen(false);
-          }} user={selectedUser} existingUsers={users} />
+          {selectedUser && (
+            <>
+              <EditUserModal 
+                isOpen={isEditUserModalOpen} 
+                onClose={() => setIsEditUserModalOpen(false)} 
+                onUpdateUser={(updatedUser) => {
+                  setUsers(prevUsers => prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user));
+                  toast.success("User updated successfully");
+                  setIsEditUserModalOpen(false);
+                }} 
+                user={selectedUser} 
+                existingUsers={users} 
+              />
               
-              <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} user={selectedUser} onEditUser={() => {
-            setIsProfileModalOpen(false);
-            setIsEditUserModalOpen(true);
-          }} />
-            </>}
+              <UserProfileModal 
+                isOpen={isProfileModalOpen} 
+                onClose={() => setIsProfileModalOpen(false)} 
+                user={selectedUser} 
+                onEditUser={() => {
+                  setIsProfileModalOpen(false);
+                  setIsEditUserModalOpen(true);
+                }} 
+              />
+            </>
+          )}
         </div>
       </div>
     </div>
