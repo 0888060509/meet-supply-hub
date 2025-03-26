@@ -42,7 +42,7 @@ const SettingsSidebar = () => {
   ];
 
   return (
-    <div className="md:w-64 bg-sidebar border-r border-accent/20 h-full hidden md:block animate-fade-in">
+    <div className="md:w-64 bg-sidebar border-r border-accent/20 md:min-h-[calc(100vh-64px)] hidden md:block sticky top-16 h-[calc(100vh-64px)] animate-fade-in">
       <div className="p-4">
         <h2 className="text-xl font-semibold mb-4">Settings</h2>
         <nav className="flex flex-col space-y-1">
