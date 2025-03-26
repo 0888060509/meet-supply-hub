@@ -26,7 +26,9 @@ const InventoryManagement = () => {
             onSearchChange={setSearchTerm}
             addButtonText="Add Item"
             onAddClick={() => {}}
-          />
+          >
+            {/* Additional filters would go here if needed */}
+          </ManagementToolbar>
           
           <TableEmptyState
             message="Inventory management functionality will be implemented soon."

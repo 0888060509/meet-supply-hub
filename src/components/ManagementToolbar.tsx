@@ -22,8 +22,9 @@ const ManagementToolbar = ({
   children,
 }: ManagementToolbarProps) => {
   return (
-    <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-6">
-      <div className="flex w-full justify-between items-center mb-2 md:mb-0">
+    <div className="space-y-4 mb-6">
+      {/* Top row: Search and Add button */}
+      <div className="flex items-center gap-2">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input 
@@ -35,12 +36,13 @@ const ManagementToolbar = ({
         </div>
         
         {addButtonText && onAddClick && (
-          <Button className="ml-2" onClick={onAddClick}>
+          <Button onClick={onAddClick}>
             <Plus className="mr-2 h-4 w-4" /> {addButtonText}
           </Button>
         )}
       </div>
       
+      {/* Bottom row: Filters */}
       {children && (
         <div className="flex flex-wrap gap-2">
           {children}

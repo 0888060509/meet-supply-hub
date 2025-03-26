@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Users, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ const UserManagement = () => {
             addButtonText="Add User"
             onAddClick={() => setIsAddUserModalOpen(true)}
           >
+            {/* Filters placed here below search and add button */}
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Role" />

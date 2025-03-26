@@ -42,6 +42,7 @@ const AdminAllBookings = () => {
             searchValue={searchTerm}
             onSearchChange={setSearchTerm}
           >
+            {/* Filter placed below the search */}
             <Select value={roomFilter} onValueChange={setRoomFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by room" />

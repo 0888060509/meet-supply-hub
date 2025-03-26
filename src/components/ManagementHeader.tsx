@@ -10,9 +10,9 @@ interface ManagementHeaderProps {
 
 const ManagementHeader = ({ title, description, icon: Icon }: ManagementHeaderProps) => {
   return (
-    <div className="flex items-center mb-6">
+    <div className="flex items-center mb-8">
       {Icon && (
-        <div className="mr-3 bg-accent/30 p-2 rounded-md">
+        <div className="mr-3 bg-accent/30 p-2.5 rounded-md">
           <Icon className="h-6 w-6 text-primary" />
         </div>
       )}
