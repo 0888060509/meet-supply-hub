@@ -13,7 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+
 interface StationeryItem extends Supply {}
+
 const categories = ["All", "Writing", "Paper", "Tools"];
 const stockLevels = [{
   value: "all",
@@ -31,6 +33,7 @@ const stockLevels = [{
   value: "out",
   label: "Out of Stock (0)"
 }];
+
 const StationeryManagement = () => {
   const navigate = useNavigate();
   const {
@@ -70,25 +73,31 @@ const StationeryManagement = () => {
     category?: string;
     link?: string;
   }>({});
+
   const initialItems: StationeryItem[] = supplies.map(item => ({
     ...item
   }));
   const [stationeryItems, setStationeryItems] = useState<StationeryItem[]>(initialItems);
+
   const handleBack = () => {
     navigate(-1);
   };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
+
   const handleCategoryFilter = (value: string) => {
     setCategoryFilter(value);
     setCurrentPage(1);
   };
+
   const handleStockFilter = (value: string) => {
     setStockFilter(value);
     setCurrentPage(1);
   };
+
   const handleSort = (key: string) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -99,6 +108,7 @@ const StationeryManagement = () => {
       direction
     });
   };
+
   const filteredAndSortedItems = useMemo(() => {
     let result = stationeryItems.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.category.toLowerCase().includes(searchTerm.toLowerCase()) || item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -127,11 +137,13 @@ const StationeryManagement = () => {
     }
     return result;
   }, [stationeryItems, searchTerm, categoryFilter, stockFilter, sortConfig]);
+
   const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
   const paginatedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedItems.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAndSortedItems, currentPage, itemsPerPage]);
+
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
@@ -166,6 +178,7 @@ const StationeryManagement = () => {
     }
     return pages;
   };
+
   const handleAddItem = () => {
     setFormData({
       name: "",
@@ -178,6 +191,7 @@ const StationeryManagement = () => {
     setFormErrors({});
     setAddDialogOpen(true);
   };
+
   const handleEditItem = (id: string) => {
     const itemToEdit = stationeryItems.find(item => item.id === id);
     if (itemToEdit) {
@@ -194,6 +208,7 @@ const StationeryManagement = () => {
       setEditDialogOpen(true);
     }
   };
+
   const handleDeleteItem = (id: string) => {
     const itemToDelete = stationeryItems.find(item => item.id === id);
     if (itemToDelete) {
@@ -201,6 +216,7 @@ const StationeryManagement = () => {
       setDeleteDialogOpen(true);
     }
   };
+
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const {
       name,
@@ -217,6 +233,7 @@ const StationeryManagement = () => {
       }));
     }
   };
+
   const validateForm = () => {
     const errors: typeof formErrors = {};
     if (!formData.name.trim()) {
@@ -238,6 +255,7 @@ const StationeryManagement = () => {
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
+
   const handleAddSubmit = () => {
     if (!validateForm()) return;
     const newItem: StationeryItem = {
@@ -245,6 +263,8 @@ const StationeryManagement = () => {
       name: formData.name,
       description: formData.description,
       category: formData.category,
+      quantity: formData.inStock,
+      unitCost: 0.00,
       inStock: formData.inStock,
       image: formData.image || "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
       link: formData.link.trim() || undefined
@@ -256,6 +276,7 @@ const StationeryManagement = () => {
       description: `${newItem.name} has been added to inventory.`
     });
   };
+
   const handleEditSubmit = () => {
     if (!currentItem || !validateForm()) return;
     const updatedItems = stationeryItems.map(item => item.id === currentItem.id ? {
@@ -274,6 +295,7 @@ const StationeryManagement = () => {
       description: `${formData.name} has been updated.`
     });
   };
+
   const handleDeleteSubmit = () => {
     if (!currentItem) return;
     const updatedItems = stationeryItems.filter(item => item.id !== currentItem.id);
@@ -284,6 +306,7 @@ const StationeryManagement = () => {
       description: `${currentItem.name} has been removed from inventory.`
     });
   };
+
   return <div className="flex min-h-[calc(100vh-64px)]">
       <SettingsSidebar />
       <div className="flex-1 p-6 md:p-8 animate-fade-in">
@@ -632,4 +655,6 @@ const StationeryManagement = () => {
       </div>
     </div>;
 };
-export default StationeryManagement;
+
+
+
