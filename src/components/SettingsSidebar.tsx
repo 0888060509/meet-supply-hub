@@ -2,7 +2,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Settings, Calendar, Users, Package, Clipboard } from "lucide-react";
+import { 
+  Settings, 
+  Calendar, 
+  Users, 
+  Clipboard, 
+  Boxes,
+  Layout
+} from "lucide-react";
 
 interface SidebarLink {
   name: string;
@@ -17,7 +24,7 @@ const SettingsSidebar = () => {
     { 
       name: "Room Management", 
       path: "/admin/rooms", 
-      icon: <Settings className="h-5 w-5" /> 
+      icon: <Layout className="h-5 w-5" /> 
     },
     { 
       name: "All Bookings", 
@@ -37,7 +44,7 @@ const SettingsSidebar = () => {
     { 
       name: "Inventory Management", 
       path: "/admin/inventory", 
-      icon: <Package className="h-5 w-5" /> 
+      icon: <Boxes className="h-5 w-5" /> 
     }
   ];
 
@@ -52,7 +59,7 @@ const SettingsSidebar = () => {
               to={link.path}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                location.pathname === link.path
+                location.pathname === link.path || location.pathname.startsWith(`${link.path}/`)
                   ? "bg-accent text-primary font-medium"
                   : "text-muted-foreground hover:bg-accent/50 hover:text-primary"
               )}

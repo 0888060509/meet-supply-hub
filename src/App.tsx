@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -19,6 +20,7 @@ import AdminRoomForm from "./pages/AdminRoomForm";
 import AdminAllBookings from "./pages/AdminAllBookings";
 import UserManagement from "./pages/UserManagement";
 import StationeryManagement from "./pages/StationeryManagement";
+import InventoryManagement from "./pages/InventoryManagement";
 import SettingsPage from "./pages/Settings";
 
 // Create a new QueryClient instance
@@ -127,12 +129,19 @@ const App: React.FC = () => {
                         </ProtectedRoute>
                       } 
                     />
-                    {/* Stationery Management Route */}
                     <Route 
                       path="/admin/stationery" 
                       element={
                         <ProtectedRoute requireAdmin>
                           <StationeryManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/inventory" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <InventoryManagement />
                         </ProtectedRoute>
                       } 
                     />
