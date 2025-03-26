@@ -1,7 +1,7 @@
 
 export { AdminLayout } from "../layouts/AdminLayout";
 export { AdminManagementToolbar } from "./AdminManagementToolbar";
-export { AdminTable } from "./AdminTable";
+export { AdminTable, type AdminTableColumn } from "./AdminTable";
 export { AdminTablePagination } from "./AdminTablePagination";
 export { AdminDeleteModal } from "./AdminDeleteModal";
 export { AdminFormField } from "./AdminFormField";
