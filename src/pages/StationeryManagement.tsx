@@ -656,5 +656,4 @@ const StationeryManagement = () => {
     </div>;
 };
 
-
-
+export default StationeryManagement;
