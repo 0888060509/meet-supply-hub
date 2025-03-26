@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+// Updated type definition to include the optional icon property
+interface NavLink {
+  name: string;
+  path: string;
+  icon?: React.ReactNode;
+}
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -37,7 +44,7 @@ const Navbar = () => {
   }, [location.pathname]);
 
   // Only show these nav links if user is authenticated
-  const navLinks = isAuthenticated ? [
+  const navLinks: NavLink[] = isAuthenticated ? [
     { name: "Dashboard", path: "/dashboard" },
     // Removed Room Booking and Office Supplies as per requirements
   ] : [
