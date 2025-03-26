@@ -9,7 +9,9 @@ import {
   Pencil, 
   Trash2, 
   ArrowUpDown, 
-  ImageIcon 
+  ImageIcon,
+  Link,
+  ExternalLink
 } from "lucide-react";
 import SettingsSidebar from "@/components/SettingsSidebar";
 import {
@@ -59,15 +61,11 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Extend the Supply type with an optional description field
 interface StationeryItem extends Supply {
-  // No need to redeclare description as it's now part of Supply type
 }
 
-// Supported categories for filtering
 const categories = ["All", "Writing", "Paper", "Tools"];
 
-// Stock levels for filtering
 const stockLevels = [
   { value: "all", label: "All Levels" },
   { value: "high", label: "In Stock (20+)" },
@@ -84,39 +82,37 @@ const StationeryManagement = () => {
   const [stockFilter, setStockFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
   
-  // For pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   
-  // For modals
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<StationeryItem | null>(null);
   
-  // Form states for add/edit
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
     category: string;
     inStock: number;
     image: string;
+    link: string;
   }>({
     name: "",
     description: "",
     category: "Writing",
     inStock: 0,
     image: "",
+    link: "",
   });
   
-  // Form validation
   const [formErrors, setFormErrors] = useState<{
     name?: string;
     inStock?: string;
     category?: string;
+    link?: string;
   }>({});
   
-  // Map the supplies data to StationeryItem array
   const initialItems: StationeryItem[] = supplies.map(item => ({
     ...item
   }));
@@ -129,17 +125,17 @@ const StationeryManagement = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
   
   const handleCategoryFilter = (value: string) => {
     setCategoryFilter(value);
-    setCurrentPage(1); // Reset to first page on new filter
+    setCurrentPage(1);
   };
   
   const handleStockFilter = (value: string) => {
     setStockFilter(value);
-    setCurrentPage(1); // Reset to first page on new filter
+    setCurrentPage(1);
   };
   
   const handleSort = (key: string) => {
@@ -152,9 +148,7 @@ const StationeryManagement = () => {
     setSortConfig({ key, direction });
   };
   
-  // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
-    // First apply search and category filters
     let result = stationeryItems.filter((item) => {
       const matchesSearch = 
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,7 +171,6 @@ const StationeryManagement = () => {
       return matchesSearch && matchesCategory && matchesStock;
     });
     
-    // Then apply sorting
     if (sortConfig !== null) {
       result.sort((a, b) => {
         if (sortConfig.key === 'name') {
@@ -196,50 +189,43 @@ const StationeryManagement = () => {
     return result;
   }, [stationeryItems, searchTerm, categoryFilter, stockFilter, sortConfig]);
   
-  // Calculate pagination
   const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
   const paginatedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedItems.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAndSortedItems, currentPage, itemsPerPage]);
   
-  // Generate page numbers for pagination display
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
     
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is less than max visible
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Show first page, last page, current page, and pages around current
       const firstPage = 1;
       const lastPage = totalPages;
       
       if (currentPage <= 3) {
-        // Current page is close to beginning
         for (let i = 1; i <= 4; i++) {
           pages.push(i);
         }
-        pages.push(null); // for ellipsis
+        pages.push(null);
         pages.push(lastPage);
       } else if (currentPage >= totalPages - 2) {
-        // Current page is close to end
         pages.push(firstPage);
-        pages.push(null); // for ellipsis
+        pages.push(null);
         for (let i = totalPages - 3; i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // Current page is in the middle
         pages.push(firstPage);
-        pages.push(null); // for ellipsis
+        pages.push(null);
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pages.push(i);
         }
-        pages.push(null); // for ellipsis
+        pages.push(null);
         pages.push(lastPage);
       }
     }
@@ -247,7 +233,6 @@ const StationeryManagement = () => {
     return pages;
   };
   
-  // Modal handlers
   const handleAddItem = () => {
     setFormData({
       name: "",
@@ -255,6 +240,7 @@ const StationeryManagement = () => {
       category: "Writing",
       inStock: 0,
       image: "",
+      link: "",
     });
     setFormErrors({});
     setAddDialogOpen(true);
@@ -270,6 +256,7 @@ const StationeryManagement = () => {
         category: itemToEdit.category,
         inStock: itemToEdit.inStock,
         image: itemToEdit.image,
+        link: itemToEdit.link || "",
       });
       setFormErrors({});
       setEditDialogOpen(true);
@@ -284,7 +271,6 @@ const StationeryManagement = () => {
     }
   };
   
-  // Form change handlers
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -292,13 +278,11 @@ const StationeryManagement = () => {
       [name]: name === 'inStock' ? parseInt(value) || 0 : value
     }));
     
-    // Clear error when field is edited
     if (formErrors[name as keyof typeof formErrors]) {
       setFormErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
   
-  // Form submission handler
   const validateForm = () => {
     const errors: typeof formErrors = {};
     
@@ -312,6 +296,14 @@ const StationeryManagement = () => {
     
     if (!formData.category) {
       errors.category = "Category is required";
+    }
+    
+    if (formData.link.trim() !== "") {
+      try {
+        new URL(formData.link);
+      } catch (e) {
+        errors.link = "Please enter a valid URL (e.g., https://example.com)";
+      }
     }
     
     setFormErrors(errors);
@@ -328,6 +320,7 @@ const StationeryManagement = () => {
       category: formData.category,
       inStock: formData.inStock,
       image: formData.image || "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
+      link: formData.link.trim() || undefined,
     };
     
     setStationeryItems(prev => [...prev, newItem]);
@@ -350,6 +343,7 @@ const StationeryManagement = () => {
         category: formData.category,
         inStock: formData.inStock,
         image: formData.image,
+        link: formData.link.trim() || undefined,
       } : item
     );
     
@@ -448,7 +442,7 @@ const StationeryManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead width="40%" className="cursor-pointer" onClick={() => handleSort('name')}>
+                  <TableHead width="30%" className="cursor-pointer" onClick={() => handleSort('name')}>
                     <div className="flex items-center">
                       Item
                       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -461,7 +455,8 @@ const StationeryManagement = () => {
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </div>
                   </TableHead>
-                  <TableHead width="30%" className="text-right">Actions</TableHead>
+                  <TableHead width="20%">Link Reference</TableHead>
+                  <TableHead width="20%" className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -507,6 +502,23 @@ const StationeryManagement = () => {
                             : `${item.inStock} ${item.inStock === 1 ? "item" : "items"}`}
                         </span>
                       </TableCell>
+                      <TableCell>
+                        {item.link ? (
+                          <a 
+                            href={item.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-primary hover:underline"
+                          >
+                            <span className="truncate max-w-[150px] inline-block align-middle">
+                              {item.link.replace(/^https?:\/\//i, '')}
+                            </span>
+                            <ExternalLink className="h-3.5 w-3.5 ml-1 inline-block align-middle" />
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground italic">No link available</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -533,7 +545,7 @@ const StationeryManagement = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                       No stationery items found.
                     </TableCell>
                   </TableRow>
@@ -542,7 +554,6 @@ const StationeryManagement = () => {
             </Table>
           </div>
           
-          {/* Pagination */}
           {filteredAndSortedItems.length > 0 && (
             <div className="mt-4">
               <Pagination>
@@ -582,7 +593,6 @@ const StationeryManagement = () => {
             </div>
           )}
           
-          {/* Add Item Dialog */}
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -666,6 +676,26 @@ const StationeryManagement = () => {
                 </div>
                 
                 <div className="space-y-2">
+                  <Label htmlFor="link">Link Reference</Label>
+                  <div className="relative">
+                    <div className="absolute left-2.5 top-2.5">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      id="link"
+                      name="link"
+                      value={formData.link}
+                      onChange={handleFormChange}
+                      placeholder="https://example.com"
+                      className={`pl-8 ${formErrors.link ? "border-red-500" : ""}`}
+                    />
+                  </div>
+                  {formErrors.link && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.link}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="image">Image URL (optional)</Label>
                   <Input 
                     id="image"
@@ -705,7 +735,6 @@ const StationeryManagement = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Edit Item Dialog */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -789,6 +818,26 @@ const StationeryManagement = () => {
                 </div>
                 
                 <div className="space-y-2">
+                  <Label htmlFor="edit-link">Link Reference</Label>
+                  <div className="relative">
+                    <div className="absolute left-2.5 top-2.5">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      id="edit-link"
+                      name="link"
+                      value={formData.link}
+                      onChange={handleFormChange}
+                      placeholder="https://example.com"
+                      className={`pl-8 ${formErrors.link ? "border-red-500" : ""}`}
+                    />
+                  </div>
+                  {formErrors.link && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.link}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="edit-image">Image URL (optional)</Label>
                   <Input 
                     id="edit-image"
@@ -828,7 +877,6 @@ const StationeryManagement = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Delete Confirmation Dialog */}
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>

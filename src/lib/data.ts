@@ -1,3 +1,4 @@
+
 export type Room = {
   id: string;
   name: string;
@@ -24,6 +25,7 @@ export type Supply = {
   inStock: number;
   image: string;
   description?: string;
+  link?: string;
 };
 
 export type Request = {
@@ -136,7 +138,8 @@ export const supplies: Supply[] = [
     category: "Writing",
     inStock: 120,
     image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
-    description: "Standard blue ballpoint pen, medium point."
+    description: "Standard blue ballpoint pen, medium point.",
+    link: "https://www.example.com/pens"
   },
   {
     id: "supply2",
@@ -144,7 +147,8 @@ export const supplies: Supply[] = [
     category: "Paper",
     inStock: 45,
     image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?q=80&w=2187&auto=format&fit=crop",
-    description: "A5 size, ruled notebook with 80 pages."
+    description: "A5 size, ruled notebook with 80 pages.",
+    link: "https://www.example.com/notebooks"
   },
   {
     id: "supply3",
@@ -160,7 +164,8 @@ export const supplies: Supply[] = [
     category: "Paper",
     inStock: 75,
     image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
-    description: "3x3 inch yellow sticky notes, pack of 100."
+    description: "3x3 inch yellow sticky notes, pack of 100.",
+    link: "https://www.example.com/stickynotes"
   },
   {
     id: "supply5",
