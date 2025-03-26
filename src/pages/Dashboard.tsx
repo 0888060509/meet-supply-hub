@@ -1,10 +1,11 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle, Plus, UserCog } from "lucide-react";
+import { Calendar, Package, Bell, Clock, FileText, Users, Settings, ChevronRight, AlertCircle, Plus, UserCog, Pen, Clipboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { bookings, rooms, getUserBookings, getUserRequests, requests, supplies } from "@/lib/data";
 import { format } from "date-fns";
@@ -424,6 +425,28 @@ const Dashboard = () => {
               <CardFooter>
                 <Button asChild variant="default" className="w-full">
                   <Link to="/admin/users">Manage Users</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* New Stationery Management Card */}
+            <Card className="hover:shadow-md transition-shadow border-primary/20 hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clipboard className="h-5 w-5 text-primary" /> Stationery Management
+                </CardTitle>
+                <CardDescription>
+                  Admin tools for managing office stationery
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Add, edit, and manage stationery items. Keep track of inventory and stock levels.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild variant="default" className="w-full">
+                  <Link to="/admin/stationery">Manage Stationery</Link>
                 </Button>
               </CardFooter>
             </Card>
