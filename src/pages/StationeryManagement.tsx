@@ -34,7 +34,7 @@ const stockLevels = [{
   label: "Out of Stock (0)"
 }];
 
-const StationeryManagement = () => {
+export default function StationeryManagement() {
   const navigate = useNavigate();
   const {
     toast
@@ -307,12 +307,12 @@ const StationeryManagement = () => {
     });
   };
 
-  return <div className="flex min-h-[calc(100vh-64px)]">
+  return (
+    <div className="flex min-h-[calc(100vh-64px)]">
       <SettingsSidebar />
       <div className="flex-1 p-6 md:p-8 animate-fade-in">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center mb-6">
-            
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Stationery Management</h1>
               <p className="text-muted-foreground mt-1">
@@ -653,7 +653,6 @@ const StationeryManagement = () => {
           </AlertDialog>
         </div>
       </div>
-    </div>;
-};
-
-export default StationeryManagement;
+    </div>
+  );
+}
