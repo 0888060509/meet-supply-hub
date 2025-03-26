@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Calendar, Package, Menu, X, User, LogOut } from "lucide-react";
+import { Calendar, Package, Menu, X, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -39,11 +39,19 @@ const Navbar = () => {
   // Only show these nav links if user is authenticated
   const navLinks = isAuthenticated ? [
     { name: "Dashboard", path: "/dashboard" },
-    { name: "Room Booking", path: "/rooms", icon: <Calendar className="w-4 h-4 mr-2" /> },
-    { name: "Office Supplies", path: "/supplies", icon: <Package className="w-4 h-4 mr-2" /> },
+    // Removed Room Booking and Office Supplies as per requirements
   ] : [
     { name: "Home", path: "/" },
   ];
+  
+  // Add Settings tab for admins
+  if (isAuthenticated && user?.role === "admin") {
+    navLinks.push({ 
+      name: "Settings", 
+      path: "/settings", 
+      icon: <Settings className="w-4 h-4 mr-2" /> 
+    });
+  }
 
   // Get initials for avatar
   const getInitials = (name: string | undefined) => {

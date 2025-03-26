@@ -20,6 +20,7 @@ import AdminRoomForm from "./pages/AdminRoomForm";
 import AdminAllBookings from "./pages/AdminAllBookings";
 import UserManagement from "./pages/UserManagement";
 import StationeryManagement from "./pages/StationeryManagement";
+import SettingsPage from "./pages/Settings";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -76,6 +77,16 @@ const App: React.FC = () => {
                       } 
                     />
                     
+                    {/* New Settings Page - Admin Only */}
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <SettingsPage />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
                     {/* Admin routes */}
                     <Route 
                       path="/admin/rooms" 
@@ -117,7 +128,7 @@ const App: React.FC = () => {
                         </ProtectedRoute>
                       } 
                     />
-                    {/* New Stationery Management Route */}
+                    {/* Stationery Management Route */}
                     <Route 
                       path="/admin/stationery" 
                       element={
