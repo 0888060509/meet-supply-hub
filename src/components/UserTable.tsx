@@ -164,7 +164,7 @@ export const UserTable = ({
                           variant={role === 'admin' ? 'default' : 'secondary'}
                           className={role === 'admin' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}
                         >
-                          {role === 'admin' ? 'admin' : 'user'}
+                          {role === 'admin' ? 'admin' : 'Employee'}
                         </Badge>
                       ))}
                     </div>

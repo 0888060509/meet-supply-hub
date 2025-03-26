@@ -98,7 +98,7 @@ export const EditUserModal = ({
       username: defaultValues.username,
       name: defaultValues.name,
       email: defaultValues.email,
-      role: defaultValues.role,
+      role: defaultValues.roles[0],
       status: defaultValues.status,
       changePassword: false,
       password: "",

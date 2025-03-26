@@ -170,7 +170,7 @@ export const updateUser = async (req: Request, res: Response) => {
     await client.query('BEGIN');
 
     const { id } = req.params;
-    const { username, name, email, roles } = req.body;
+    const { username, name, email, roles, status } = req.body;
 
     // Validate required fields
     if (!username || !name || !email) {
@@ -224,8 +224,8 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // Update user
     const userResult = await client.query(
-      'UPDATE users SET username = $1, name = $2, email = $3 WHERE id = $4 RETURNING id, username, name, email, created_at',
-      [username, name, email, id]
+      'UPDATE users SET username = $1, name = $2, email = $3, status = $4 WHERE id = $5 RETURNING id, username, name, email, status, created_at',
+      [username, name, email, status, id]
     );
 
     if (userResult.rows.length === 0) {

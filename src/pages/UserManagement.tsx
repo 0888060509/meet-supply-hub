@@ -568,7 +568,8 @@ const UserManagement = () => {
         username: values.username,
         name: values.name,
         email: values.email,
-        roles: [values.role] // Convert single role to array for backend compatibility
+        roles: [values.role], // Convert single role to array for backend compatibility
+        status: values.status // Include status in update
       });
 
       toast({
