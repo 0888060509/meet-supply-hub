@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-// Assuming Input component is available from a library like Ant Design or Material UI
 
+import React, { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function RecurringBookingForm() {
   const [date, setDate] = useState('');
@@ -17,33 +18,39 @@ function RecurringBookingForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="date">Date:</label>
-      <Input
-        type="date"
-        id="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-      />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid gap-2">
+        <label htmlFor="date" className="text-sm font-medium">Date:</label>
+        <Input
+          type="date"
+          id="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+      </div>
 
-      <label htmlFor="startTime">Start Time:</label>
-      <Input
-        type="time"
-        id="startTime"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-      />
+      <div className="grid gap-2">
+        <label htmlFor="startTime" className="text-sm font-medium">Start Time:</label>
+        <Input
+          type="time"
+          id="startTime"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+        />
+      </div>
 
-      <label htmlFor="attendees">Attendees:</label>
-      <Input
-        type="number"
-        id="attendees"
-        value={attendees}
-        min="1"
-        onChange={(e) => setAttendees(parseInt(e.target.value, 10))}
-      />
+      <div className="grid gap-2">
+        <label htmlFor="attendees" className="text-sm font-medium">Attendees:</label>
+        <Input
+          type="number"
+          id="attendees"
+          value={attendees}
+          min="1"
+          onChange={(e) => setAttendees(parseInt(e.target.value, 10))}
+        />
+      </div>
 
-      <button type="submit">Submit</button>
+      <Button type="submit">Submit</Button>
     </form>
   );
 }

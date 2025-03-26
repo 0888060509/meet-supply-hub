@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -50,7 +49,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-// Mock data for stationery items
 const mockStationeryItems = [
   { id: "1", name: "Ballpoint Pens", description: "Blue ink ballpoint pens", stockQuantity: 45 },
   { id: "2", name: "Notebooks", description: "A5 spiral notebooks, lined", stockQuantity: 32 },
@@ -77,7 +75,6 @@ const StationeryManagement = () => {
   const [sortField, setSortField] = useState<"name" | "stockQuantity">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   
-  // Modal state management
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -88,7 +85,6 @@ const StationeryManagement = () => {
     stockQuantity: 0,
   });
   
-  // Filter and sort items
   const filteredItems = stationeryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -113,7 +109,6 @@ const StationeryManagement = () => {
     }
   });
   
-  // Toggle sort direction when clicking on column headers
   const toggleSort = (field: "name" | "stockQuantity") => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -123,7 +118,6 @@ const StationeryManagement = () => {
     }
   };
   
-  // Handle adding a new item
   const handleAddItem = () => {
     if (!formData.name.trim()) {
       toast.error("Item name is required");
@@ -148,7 +142,6 @@ const StationeryManagement = () => {
     toast.success("Item added successfully");
   };
   
-  // Handle editing an item
   const handleEditItem = () => {
     if (!currentItem) return;
     
@@ -172,7 +165,6 @@ const StationeryManagement = () => {
     toast.success("Item updated successfully");
   };
   
-  // Handle deleting an item
   const handleDeleteItem = () => {
     if (!currentItem) return;
     
@@ -182,7 +174,6 @@ const StationeryManagement = () => {
     toast.success("Item deleted successfully");
   };
   
-  // Reset form data
   const resetForm = () => {
     setFormData({
       name: "",
@@ -192,7 +183,6 @@ const StationeryManagement = () => {
     setCurrentItem(null);
   };
   
-  // Open edit modal with current item data
   const openEditModal = (item: StationeryItem) => {
     setCurrentItem(item);
     setFormData({
@@ -203,7 +193,6 @@ const StationeryManagement = () => {
     setIsEditModalOpen(true);
   };
   
-  // Open delete confirmation dialog
   const openDeleteDialog = (item: StationeryItem) => {
     setCurrentItem(item);
     setIsDeleteDialogOpen(true);
@@ -295,7 +284,7 @@ const StationeryManagement = () => {
                       {item.stockQuantity === 0 ? (
                         <Badge variant="destructive">Out of stock</Badge>
                       ) : item.stockQuantity <= 10 ? (
-                        <Badge variant="warning" className="bg-amber-500">Low stock</Badge>
+                        <Badge variant="outline" className="bg-amber-500 text-white border-amber-500">Low stock</Badge>
                       ) : null}
                     </div>
                     <div className="w-full h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
@@ -342,7 +331,6 @@ const StationeryManagement = () => {
         </div>
       )}
       
-      {/* Add Item Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -400,7 +388,6 @@ const StationeryManagement = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Edit Item Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -456,7 +443,6 @@ const StationeryManagement = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
