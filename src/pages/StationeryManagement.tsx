@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -62,7 +61,7 @@ import {
 
 // Extend the Supply type with an optional description field
 interface StationeryItem extends Supply {
-  description?: string;
+  // No need to redeclare description as it's now part of Supply type
 }
 
 // Supported categories for filtering
@@ -117,10 +116,9 @@ const StationeryManagement = () => {
     category?: string;
   }>({});
   
-  // Map the supplies data to StationeryItem array, adding description if missing
+  // Map the supplies data to StationeryItem array
   const initialItems: StationeryItem[] = supplies.map(item => ({
-    ...item,
-    description: item.description || item.name // Use name as description if it's missing
+    ...item
   }));
   
   const [stationeryItems, setStationeryItems] = useState<StationeryItem[]>(initialItems);

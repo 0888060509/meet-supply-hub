@@ -23,6 +23,7 @@ export type Supply = {
   category: string;
   inStock: number;
   image: string;
+  description?: string;
 };
 
 export type Request = {
@@ -134,35 +135,40 @@ export const supplies: Supply[] = [
     name: "Ballpoint Pen",
     category: "Writing",
     inStock: 120,
-    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
+    description: "Standard blue ballpoint pen, medium point."
   },
   {
     id: "supply2",
     name: "Notebook (A5)",
     category: "Paper",
     inStock: 45,
-    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?q=80&w=2187&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?q=80&w=2187&auto=format&fit=crop",
+    description: "A5 size, ruled notebook with 80 pages."
   },
   {
     id: "supply3",
     name: "Stapler",
     category: "Tools",
     inStock: 18,
-    image: "https://images.unsplash.com/photo-1612143760124-9f8e25d7c1c4?q=80&w=2130&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1612143760124-9f8e25d7c1c4?q=80&w=2130&auto=format&fit=crop",
+    description: "Desktop stapler, black, holds standard staples."
   },
   {
     id: "supply4",
     name: "Sticky Notes",
     category: "Paper",
     inStock: 75,
-    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=2122&auto=format&fit=crop",
+    description: "3x3 inch yellow sticky notes, pack of 100."
   },
   {
     id: "supply5",
     name: "Highlighter",
     category: "Writing",
     inStock: 50,
-    image: "https://images.unsplash.com/photo-1611532736597-8bc2eb1ecf91?q=80&w=2187&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1611532736597-8bc2eb1ecf91?q=80&w=2187&auto=format&fit=crop",
+    description: "Fluorescent yellow highlighter pen, chisel tip."
   }
 ];
 
