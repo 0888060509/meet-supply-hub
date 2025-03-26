@@ -1,3 +1,4 @@
+
 export interface Room {
   id: string;
   name: string;
@@ -151,6 +152,8 @@ export interface Supply {
   category: string;
   quantity: number;
   unitCost: number;
+  inStock?: number;
+  image?: string;
 }
 
 export const supplies: Supply[] = [
@@ -159,34 +162,87 @@ export const supplies: Supply[] = [
     name: "Staples",
     category: "Office Supplies",
     quantity: 5000,
-    unitCost: 0.01
+    unitCost: 0.01,
+    inStock: 5000
   },
   {
     id: "supply2",
     name: "Printer Paper",
     category: "Office Supplies",
     quantity: 2000,
-    unitCost: 0.05
+    unitCost: 0.05,
+    inStock: 2000
   },
   {
     id: "supply3",
     name: "Pens",
     category: "Office Supplies",
     quantity: 1000,
-    unitCost: 0.25
+    unitCost: 0.25,
+    inStock: 1000
   },
   {
     id: "supply4",
     name: "Cleaning Wipes",
     category: "Janitorial",
     quantity: 500,
-    unitCost: 1.50
+    unitCost: 1.50,
+    inStock: 500
   },
   {
     id: "supply5",
     name: "Hand Soap",
     category: "Janitorial",
     quantity: 200,
-    unitCost: 2.00
+    unitCost: 2.00,
+    inStock: 200
   }
 ];
+
+// Define the Request interface that's imported in Supplies.tsx
+export interface Request {
+  id: string;
+  userId: string;
+  items: Array<{
+    supplyId: string;
+    quantity: number;
+  }>;
+  requestDate: string;
+  status: string;
+  notes?: string;
+}
+
+// Sample requests data
+export const requests: Request[] = [
+  {
+    id: "request1",
+    userId: "user1",
+    items: [
+      { supplyId: "supply1", quantity: 100 },
+      { supplyId: "supply3", quantity: 5 }
+    ],
+    requestDate: "2024-08-15",
+    status: "pending",
+    notes: "Need for the new project"
+  },
+  {
+    id: "request2",
+    userId: "user2",
+    items: [
+      { supplyId: "supply2", quantity: 50 }
+    ],
+    requestDate: "2024-08-16",
+    status: "approved",
+    notes: "Monthly refill"
+  }
+];
+
+// Helper function to get bookings for a specific user
+export const getUserBookings = (userId: string): Booking[] => {
+  return bookings.filter(booking => booking.userId === userId);
+};
+
+// Helper function to get requests for a specific user
+export const getUserRequests = (userId: string): Request[] => {
+  return requests.filter(request => request.userId === userId);
+};
