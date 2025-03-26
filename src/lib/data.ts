@@ -1,4 +1,3 @@
-
 export interface Room {
   id: string;
   name: string;
@@ -6,6 +5,7 @@ export interface Room {
   location: string;
   equipment: string[];
   status?: string;
+  image?: string;
 }
 
 export interface Booking {
@@ -27,7 +27,8 @@ export const rooms: Room[] = [
     capacity: 20,
     location: "1st Floor, East Wing",
     equipment: ["Projector", "Whiteboard", "Video Conference System"],
-    status: "Available"
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?q=80&w=2070&auto=format&fit=crop"
   },
   {
     id: "room2",
@@ -35,7 +36,8 @@ export const rooms: Room[] = [
     capacity: 8,
     location: "2nd Floor, West Wing",
     equipment: ["Whiteboard", "TV Screen"],
-    status: "Available"
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1577412647305-991150c7d163?q=80&w=2070&auto=format&fit=crop"
   },
   {
     id: "room3",
@@ -43,7 +45,8 @@ export const rooms: Room[] = [
     capacity: 12,
     location: "3rd Floor, Executive Suite",
     equipment: ["Projector", "Whiteboard", "Video Conference System", "Flipchart"],
-    status: "Under Maintenance"
+    status: "Under Maintenance",
+    image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=2069&auto=format&fit=crop"
   },
   {
     id: "room4",
@@ -51,7 +54,8 @@ export const rooms: Room[] = [
     capacity: 4,
     location: "1st Floor, North Wing",
     equipment: ["Whiteboard"],
-    status: "Available"
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop"
   }
 ];
 
@@ -154,6 +158,8 @@ export interface Supply {
   unitCost: number;
   inStock?: number;
   image?: string;
+  description?: string;
+  link?: string;
 }
 
 export const supplies: Supply[] = [
@@ -163,7 +169,8 @@ export const supplies: Supply[] = [
     category: "Office Supplies",
     quantity: 5000,
     unitCost: 0.01,
-    inStock: 5000
+    inStock: 5000,
+    description: "Standard staples for office staplers"
   },
   {
     id: "supply2",
@@ -171,7 +178,8 @@ export const supplies: Supply[] = [
     category: "Office Supplies",
     quantity: 2000,
     unitCost: 0.05,
-    inStock: 2000
+    inStock: 2000,
+    description: "Standard A4 printer paper"
   },
   {
     id: "supply3",
@@ -179,7 +187,8 @@ export const supplies: Supply[] = [
     category: "Office Supplies",
     quantity: 1000,
     unitCost: 0.25,
-    inStock: 1000
+    inStock: 1000,
+    description: "Blue ballpoint pens"
   },
   {
     id: "supply4",
@@ -187,7 +196,8 @@ export const supplies: Supply[] = [
     category: "Janitorial",
     quantity: 500,
     unitCost: 1.50,
-    inStock: 500
+    inStock: 500,
+    description: "Antibacterial surface cleaning wipes"
   },
   {
     id: "supply5",
@@ -195,11 +205,11 @@ export const supplies: Supply[] = [
     category: "Janitorial",
     quantity: 200,
     unitCost: 2.00,
-    inStock: 200
+    inStock: 200,
+    description: "Liquid hand soap for bathrooms"
   }
 ];
 
-// Define the Request interface that's imported in Supplies.tsx
 export interface Request {
   id: string;
   userId: string;
@@ -212,7 +222,6 @@ export interface Request {
   notes?: string;
 }
 
-// Sample requests data
 export const requests: Request[] = [
   {
     id: "request1",
@@ -237,12 +246,10 @@ export const requests: Request[] = [
   }
 ];
 
-// Helper function to get bookings for a specific user
 export const getUserBookings = (userId: string): Booking[] => {
   return bookings.filter(booking => booking.userId === userId);
 };
 
-// Helper function to get requests for a specific user
 export const getUserRequests = (userId: string): Request[] => {
   return requests.filter(request => request.userId === userId);
 };
