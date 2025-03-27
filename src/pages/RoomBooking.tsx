@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { rooms, bookings, Room, Booking } from "@/lib/data";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -151,41 +150,23 @@ const RoomBooking = () => {
               />
               
               {/* All Building Rooms Section */}
-              <div className="my-8">
-                <h2 className="text-xl font-semibold mb-4">Building Rooms</h2>
-                <p className="text-muted-foreground mb-6">
-                  Browse all available rooms in the building
-                </p>
-                <RoomsDisplay rooms={rooms} onBookNow={handleBookNow} />
-              </div>
-              
-              {/* Enhanced Room List with Details Link */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 mb-4">
-                {filteredRooms.map(room => (
-                  <div key={room.id} className="flex flex-col p-4 border rounded-md bg-white hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-medium">{room.name}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {room.location}
-                        </p>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => handleBookNow(room.id)}>
-                        Book
-                      </Button>
-                    </div>
-                    <div className="mt-auto pt-2 flex justify-between items-center">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/rooms/${room.id}`} className="flex items-center gap-1 text-primary hover:text-primary/80">
-                          <Info className="h-3.5 w-3.5" />
-                          <span>Details</span>
-                          <ExternalLink className="h-3 w-3 ml-1" />
-                        </Link>
-                      </Button>
-                    </div>
+              <div className="my-10 bg-accent/5 p-6 rounded-lg border">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold">Building Rooms</h2>
+                    <p className="text-muted-foreground">
+                      Explore available spaces for different meeting scenarios
+                    </p>
                   </div>
-                ))}
+                  
+                  <div className="mt-4 md:mt-0">
+                    <Badge variant="outline" className="bg-primary/10">
+                      {rooms.length} Rooms Available
+                    </Badge>
+                  </div>
+                </div>
+                
+                <RoomsDisplay rooms={rooms} onBookNow={handleBookNow} />
               </div>
             </div>
           </> : <div className="animate-fade-in">
