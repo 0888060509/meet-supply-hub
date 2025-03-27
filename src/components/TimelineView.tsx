@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Room, Booking } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -255,9 +256,12 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   };
   
   const canMakeRecurring = selectedTimeRange !== null && selectedTimeRange.start && selectedTimeRange.end;
+
+  // Determine zoom slider milestones
+  const zoomMilestones = [15, 30, 45, 60];
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-10 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-4">
       <div className="lg:col-span-3 xl:col-span-3">
         <Card className="shadow-sm sticky top-4 h-full">
           <CardHeader className="pb-2">
@@ -280,7 +284,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                     onSelect={(newDate) => newDate && setDate(newDate)}
                     initialFocus
                     className="bg-white pointer-events-auto"
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                   />
                 </PopoverContent>
               </Popover>
@@ -426,7 +429,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 max={60}
                 step={15}
                 onValueChange={(value) => setTimeSlotDuration(value[0])}
+                className="mt-2"
               />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                {zoomMilestones.map(milestone => (
+                  <span key={milestone} className="text-center">{milestone} min</span>
+                ))}
+              </div>
             </div>
             
             <div className="pt-3 border-t">
@@ -469,7 +478,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         </Card>
       </div>
       
-      <div className="lg:col-span-7 xl:col-span-7">
+      <div className="lg:col-span-9 xl:col-span-9">
         <Card className="shadow-sm h-full flex flex-col">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -532,10 +541,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                         >
                           <div className="flex flex-col h-full justify-center">
                             <div className="font-medium">{room.name}</div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <Users className="h-3 w-3" />
-                              <span>{room.capacity}</span>
-                            </div>
                             
                             <div className="flex flex-wrap gap-1 mt-1">
                               {room.equipment.map(eq => (
@@ -548,6 +553,11 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                                   <TooltipContent side="right">{eq}</TooltipContent>
                                 </Tooltip>
                               ))}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                              <Users className="h-3 w-3" />
+                              <span>Capacity: {room.capacity}</span>
                             </div>
                           </div>
                         </div>

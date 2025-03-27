@@ -56,6 +56,51 @@ export const rooms: Room[] = [
     equipment: ["Whiteboard"],
     status: "Available",
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop"
+  },
+  {
+    id: "room5",
+    name: "Innovation Lab",
+    capacity: 15,
+    location: "4th Floor, Innovation Center",
+    equipment: ["Projector", "Whiteboard", "Video Conference System", "WiFi", "Display Screen"],
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop"
+  },
+  {
+    id: "room6",
+    name: "Training Center",
+    capacity: 30,
+    location: "Ground Floor, Training Wing",
+    equipment: ["Projector", "Whiteboard", "Teleconference", "Presentation Setup"],
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=2125&auto=format&fit=crop"
+  },
+  {
+    id: "room7",
+    name: "Small Meeting Pod",
+    capacity: 3,
+    location: "2nd Floor, Open Space Area",
+    equipment: ["TV Screen", "WiFi"],
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2069&auto=format&fit=crop"
+  },
+  {
+    id: "room8",
+    name: "Executive Lounge",
+    capacity: 10,
+    location: "5th Floor, Executive Wing",
+    equipment: ["Projector", "Video Conference System", "Display Screen", "WiFi"],
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=2125&auto=format&fit=crop"
+  },
+  {
+    id: "room9",
+    name: "Collaboration Space",
+    capacity: 16,
+    location: "3rd Floor, Creative Zone",
+    equipment: ["Whiteboard", "TV Screen", "Presentation Setup"],
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1577412647305-991150c7d163?q=80&w=2070&auto=format&fit=crop"
   }
 ];
 
