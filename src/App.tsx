@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -78,12 +77,20 @@ const App: React.FC = () => {
                       } 
                     />
                     
-                    {/* Redirect Settings to Room Management */}
+                    {/* Settings routes */}
                     <Route 
                       path="/settings" 
                       element={
                         <ProtectedRoute requireAdmin>
-                          <Navigate to="/admin/rooms" replace />
+                          <SettingsPage />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/settings/users" 
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <UserManagement />
                         </ProtectedRoute>
                       } 
                     />

@@ -1,287 +1,20 @@
-<<<<<<< HEAD
-
-import React, { useState } from "react";
-import { Users, UserPlus } from "lucide-react";
-=======
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Plus, Filter, Trash2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
->>>>>>> 50d34be (Add user management)
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import SettingsSidebar from "@/components/SettingsSidebar";
-import ManagementHeader from "@/components/ManagementHeader";
-import ManagementToolbar from "@/components/ManagementToolbar";
-import TableEmptyState from "@/components/TableEmptyState";
+import { SettingsSidebar } from "@/components/SettingsSidebar";
+import { ManagementHeader } from "@/components/ManagementHeader";
+import { ManagementToolbar } from "@/components/ManagementToolbar";
+import { TableEmptyState } from "@/components/TableEmptyState";
 import { AddUserModal } from "@/components/AddUserModal";
 import { EditUserModal } from "@/components/EditUserModal";
 import { UserProfileModal } from "@/components/UserProfileModal";
-<<<<<<< HEAD
-
-const initialUsers = [{
-  id: "1",
-  username: "admin",
-  email: "admin@example.com",
-  role: "admin",
-  status: "active"
-}, {
-  id: "2",
-  username: "johndoe",
-  email: "john@example.com",
-  role: "user",
-  status: "active"
-}, {
-  id: "3",
-  username: "janedoe",
-  email: "jane@example.com",
-  role: "user",
-  status: "inactive"
-}, {
-  id: "4",
-  username: "sarahsmith",
-  email: "sarah@example.com",
-  role: "admin",
-  status: "active"
-}, {
-  id: "5",
-  username: "mikebrown",
-  email: "mike@example.com",
-  role: "user",
-  status: "active"
-}];
-
-const UserManagement = () => {
-  const [users, setUsers] = useState(initialUsers);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<null | typeof initialUsers[0]>(null);
-  const usersPerPage = 10;
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-
-  const handleToggleUserStatus = (userId: string) => {
-    setUsers(prevUsers => prevUsers.map(user => user.id === userId ? {
-      ...user,
-      status: user.status === "active" ? "inactive" : "active"
-    } : user));
-    toast.success(`User ${users.find(u => u.id === userId)?.status === "active" ? "deactivated" : "activated"} successfully`);
-  };
-
-  const handleViewUserDetails = (user: typeof initialUsers[0]) => {
-    setSelectedUser(user);
-    setIsProfileModalOpen(true);
-  };
-
-  const handleEditUser = (user: typeof initialUsers[0]) => {
-    setSelectedUser(user);
-    setIsEditUserModalOpen(true);
-  };
-
-  return (
-    <div className="flex min-h-[calc(100vh-64px)]">
-      <SettingsSidebar />
-      <div className="flex-1 p-6 md:p-8 animate-fade-in">
-        <div className="max-w-5xl mx-auto">
-          <ManagementHeader
-            title="User Management"
-            description="Manage user accounts and permissions"
-            icon={Users}
-          />
-
-          <ManagementToolbar
-            searchPlaceholder="Search by username or email..."
-            searchValue={searchTerm}
-            onSearchChange={setSearchTerm}
-            addButtonText="Add User"
-            onAddClick={() => setIsAddUserModalOpen(true)}
-          >
-            {/* Filters placed here below search and add button */}
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </ManagementToolbar>
-
-          {filteredUsers.length > 0 ? (
-            <>
-              <div className="border rounded-md shadow-sm overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentUsers.map(user => (
-                      <TableRow 
-                        key={user.id} 
-                        className={`hover:bg-accent/30 transition-colors ${user.status === "inactive" ? "opacity-60" : ""}`}
-                      >
-                        <TableCell 
-                          className="font-medium cursor-pointer hover:underline" 
-                          onClick={() => handleViewUserDetails(user)}
-                        >
-                          {user.username}
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                            {user.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className={`h-2 w-2 rounded-full mr-2 ${user.status === "active" ? "bg-green-500" : "bg-red-500"}`} />
-                            <span className="capitalize">{user.status}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
-                              Edit
-                            </Button>
-                            <Button 
-                              variant={user.status === "active" ? "destructive" : "outline"} 
-                              size="sm" 
-                              onClick={() => handleToggleUserStatus(user.id)}
-                            >
-                              {user.status === "active" ? "Deactivate" : "Activate"}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={currentPage === 1} 
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    >
-                      Previous
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={currentPage === totalPages} 
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <TableEmptyState
-              message={
-                searchTerm || roleFilter !== "all" || statusFilter !== "all"
-                  ? "No matching users found. Try adjusting your search or filters."
-                  : "No users found. Click '+ Add User' to create one."
-              }
-              actionLabel="Add User"
-              onAction={() => setIsAddUserModalOpen(true)}
-              filterActive={!!searchTerm || roleFilter !== "all" || statusFilter !== "all"}
-            />
-          )}
-
-          <AddUserModal 
-            isOpen={isAddUserModalOpen} 
-            onClose={() => setIsAddUserModalOpen(false)} 
-            onAddUser={(newUser) => {
-              setUsers(prevUsers => [...prevUsers, {
-                ...newUser,
-                id: Date.now().toString()
-              }]);
-              toast.success("User created successfully");
-              setIsAddUserModalOpen(false);
-            }} 
-            existingUsers={users} 
-          />
-          
-          {selectedUser && (
-            <>
-              <EditUserModal 
-                isOpen={isEditUserModalOpen} 
-                onClose={() => setIsEditUserModalOpen(false)} 
-                onUpdateUser={(updatedUser) => {
-                  setUsers(prevUsers => prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user));
-                  toast.success("User updated successfully");
-                  setIsEditUserModalOpen(false);
-                }} 
-                user={selectedUser} 
-                existingUsers={users} 
-              />
-              
-              <UserProfileModal 
-                isOpen={isProfileModalOpen} 
-                onClose={() => setIsProfileModalOpen(false)} 
-                user={selectedUser} 
-                onEditUser={() => {
-                  setIsProfileModalOpen(false);
-                  setIsEditUserModalOpen(true);
-                }} 
-              />
-            </>
-          )}
-        </div>
-      </div>
-=======
-import { toast } from "sonner";
-import apiClient from "../lib/api";
-import { useAuth } from '../contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format, formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -295,71 +28,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ManagementHeader } from "@/components/ManagementHeader";
-import { ManagementToolbar } from "@/components/ManagementToolbar";
-import { TableEmptyState } from "@/components/TableEmptyState";
 import { Users } from "lucide-react";
-import { SettingsSidebar } from "@/components/SettingsSidebar";
-import { UserTable } from "@/components/UserTable";
+import apiClient from "../lib/api";
+import { useAuth } from '../contexts/AuthContext';
+import { User, RoleId } from "@/lib/api";
 
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'employee';
-  roles: ('admin' | 'employee')[];
-  status: 'active' | 'inactive';
-  created_at?: string;
-  last_login?: string;
-  login_count?: number;
-}
-
-const PAGE_SIZE_OPTIONS = [3, 5, 10, 25, 50, 100] as const;
-type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+type PageSize = 10 | 20 | 30 | 50;
 
 interface SortConfig {
-  field: keyof User;
+  field: 'username' | 'name' | 'email' | 'created_at' | 'last_login';
   order: 'asc' | 'desc';
 }
 
-// Tách các hàm tiện ích ra khỏi component
-const getRoleBadgeVariant = (role: string) => {
-  switch (role) {
-    case 'admin':
-      return 'destructive';
-    case 'manager':
-      return 'default';
-    case 'user':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-};
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+}
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'Active';
-    case 'inactive':
-      return 'Inactive';
-    default:
-      return status;
-  }
-};
-
-const formatLastLogin = (lastLogin: string | null, loginCount: number) => {
-  if (!lastLogin) return 'Never';
-  const date = new Date(lastLogin);
-  const now = new Date();
-  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-  
-  if (diffInMinutes < 1) return 'Just now';
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-  if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d ago`;
-  return format(date, 'dd/MM/yyyy HH:mm');
-};
+interface ValidationErrors {
+  [key: string]: string[];
+}
 
 const UserManagement = () => {
   const { isAdmin } = useAuth();
@@ -390,12 +78,11 @@ const UserManagement = () => {
   const [total, setTotal] = useState(0);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'created_at', order: 'desc' });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [addUserErrors, setAddUserErrors] = useState<{
-    username?: string;
-    email?: string;
-  }>({});
+  const [addUserErrors, setAddUserErrors] = useState<ValidationErrors>({});
+  const [editUserErrors, setEditUserErrors] = useState<ValidationErrors>({});
   
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     fetchUsers();
@@ -411,6 +98,23 @@ const UserManagement = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Handle URL changes
+  useEffect(() => {
+    const userId = searchParams.get('userId');
+    if (userId) {
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        setSelectedUser(user);
+        // Chỉ mở ProfileModal nếu không có action=edit trên URL
+        if (!searchParams.get('action')) {
+          setIsProfileModalOpen(true);
+        } else if (searchParams.get('action') === 'edit') {
+          setIsEditModalOpen(true);
+        }
+      }
+    }
+  }, [searchParams, users]);
+
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
@@ -425,7 +129,17 @@ const UserManagement = () => {
       });
       
       if (response && response.data) {
-        setUsers(response.data);
+        // Lọc bỏ các user không hợp lệ
+        const validUsers = response.data.filter(user => 
+          user && 
+          typeof user === 'object' && 
+          'username' in user && 
+          'name' in user && 
+          'email' in user && 
+          'roles' in user && 
+          'status' in user
+        );
+        setUsers(validUsers);
         setTotal(response.total);
       } else {
         setUsers([]);
@@ -436,8 +150,8 @@ const UserManagement = () => {
       setUsers([]);
       setTotal(0);
       toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách người dùng',
+        title: 'Error',
+        description: 'Unable to load user list',
         variant: 'destructive'
       });
     } finally {
@@ -451,31 +165,38 @@ const UserManagement = () => {
     const newErrors: Record<string, string> = {};
 
     if (!newUser.username.trim()) {
-      newErrors.username = 'Tên đăng nhập không được để trống';
+      newErrors.username = 'Username is required';
     }
 
     if (!newUser.password) {
-      newErrors.password = 'Mật khẩu không được để trống';
+      newErrors.password = 'Password is required';
     } else if (newUser.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     if (!newUser.name.trim()) {
-      newErrors.name = 'Tên không được để trống';
+      newErrors.name = 'Name is required';
     }
 
     if (!newUser.email.trim()) {
-      newErrors.email = 'Email không được để trống';
+      newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = 'Invalid email format';
     }
 
     if (!newUser.roles.length) {
-      newErrors.roles = 'Vui lòng chọn ít nhất một vai trò';
+      newErrors.roles = 'Please select at least one role';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSort = (field: SortConfig['field']) => {
+    setSortConfig(prevConfig => ({
+      field,
+      order: prevConfig.field === field && prevConfig.order === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   const checkDuplicateFields = async (username: string, email: string, userId?: string) => {
@@ -486,111 +207,99 @@ const UserManagement = () => {
         userId
       });
       
-      const errors: { username?: string; email?: string } = {};
+      const errors: ValidationErrors = {};
       
-      if (response.duplicateUsername) {
-        errors.username = 'Username already exists';
+      if (response.duplicateUsername || response.duplicateEmail) {
+        if (response.duplicateUsername) {
+          errors.username = ['This username is already taken. Please choose another one.'];
+        }
+        if (response.duplicateEmail) {
+          errors.email = ['This email address is already registered. Please use a different email.'];
+        }
+        
+        // Set errors to corresponding state
+        if (userId) {
+          setEditUserErrors(errors);
+        } else {
+          setAddUserErrors(errors);
+        }
+        return false;
       }
-      if (response.duplicateEmail) {
-        errors.email = 'Email already exists';
-      }
-      
-      setAddUserErrors(errors);
-      return Object.keys(errors).length === 0;
-      
+      return true;
     } catch (error) {
-      console.error('Error checking duplicate fields:', error);
+      console.error('Error checking duplicates:', error);
       toast({
         title: 'Error',
-        description: 'Could not check for duplicate fields',
+        description: 'Unable to check for duplicate fields',
         variant: 'destructive'
       });
       return false;
     }
   };
 
-  const handleAddUser = async () => {
-    if (!validateNewUser()) {
-      return;
-    }
-
-    // Kiểm tra trùng lặp trước khi gửi request tạo user
-    const isValid = await checkDuplicateFields(newUser.username, newUser.email);
-    if (!isValid) {
-      return;
-    }
-
+  const handleAddUser = async (values: any) => {
     try {
-      await apiClient.createUser(newUser);
-      toast({
-        title: 'Thành công',
-        description: 'Tạo người dùng mới thành công'
-      });
-      setIsAddModalOpen(false);
-      setNewUser({
-        username: '',
-        password: '',
-        name: '',
-        email: '',
-        roles: [],
-        status: 'active' as const
-      });
-      setErrors({});
-      fetchUsers();
+      // Check for duplicates before creating user
+      const notDuplicate = await checkDuplicateFields(values.username, values.email);
+      if (notDuplicate) {
+        const response = (await apiClient.createUser({
+          username: values.username,
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          roles: [values.role],
+          status: 'active',
+          created_at: new Date().toISOString()
+        })) as unknown as ApiResponse<User>;
+
+        setUsers(prev => [...prev, response.data]);
+        setIsAddModalOpen(false);
+        toast({
+          title: "Success",
+          description: "New user has been created"
+        });
+      }
     } catch (error: any) {
-      console.error('Error creating user:', error);
-      // Xử lý lỗi từ server nếu vẫn có trường hợp trùng lặp
-      if (error.response?.data?.message?.includes('username')) {
-        setErrors(prev => ({ ...prev, username: 'Tên đăng nhập đã tồn tại' }));
-      } else if (error.response?.data?.message?.includes('email')) {
-        setErrors(prev => ({ ...prev, email: 'Email đã tồn tại' }));
+      if (error.response?.data?.errors) {
+        setAddUserErrors(error.response.data.errors);
       } else {
         toast({
-          title: 'Lỗi',
-          description: 'Không thể tạo người dùng mới',
-          variant: 'destructive'
+          title: "Error",
+          description: error.response?.data?.message || "Failed to create new user"
         });
       }
     }
   };
 
   const handleUpdateUser = async (values: any) => {
-    if (!selectedUser) return;
-
-    // Check for duplicates first
-    const isValid = await checkDuplicateFields(values.username, values.email, selectedUser.id);
-    if (!isValid) {
-      return;
-    }
-
     try {
-      const response = await apiClient.updateUser(selectedUser.id, {
-        username: values.username,
-        name: values.name,
-        email: values.email,
-        roles: [values.role], // Convert single role to array for backend compatibility
-        status: values.status // Include status in update
-      });
+      // Check for duplicates before updating user
+      const notDuplicate = await checkDuplicateFields(values.username, values.email, selectedUser?.id);
+      if (notDuplicate) {
+        const response = (await apiClient.updateUser(selectedUser!.id, {
+          username: values.username,
+          name: values.name,
+          email: values.email,
+          roles: [values.role],
+          status: values.status,
+          ...(values.changePassword && { password: values.password })
+        })) as unknown as ApiResponse<User>;
 
-      toast({
-        title: 'Success',
-        description: 'User updated successfully'
-      });
-
-      setIsEditModalOpen(false);
-      setSelectedUser(null);
-      setAddUserErrors({});
-      fetchUsers();
+        setIsEditModalOpen(false);
+        await fetchUsers();
+        
+        toast({
+          title: "Success",
+          description: "User information has been updated"
+        });
+      }
     } catch (error: any) {
-      console.error('Error updating user:', error);
-      // Handle server-side validation errors
       if (error.response?.data?.errors) {
-        setAddUserErrors(error.response.data.errors);
+        setEditUserErrors(error.response.data.errors);
       } else {
         toast({
-          title: 'Error',
-          description: error.response?.data?.message || 'Failed to update user',
-          variant: 'destructive'
+          title: "Error",
+          description: error.response?.data?.message || "Failed to update user information"
         });
       }
     }
@@ -617,14 +326,12 @@ const UserManagement = () => {
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
-
+  const handleDeleteUser = async (userId: string) => {
     try {
-      await apiClient.deleteUser(userToDelete.id);
+      await apiClient.deleteUser(userId);
       toast({
-        title: 'Thành công',
-        description: 'Đã xóa tài khoản người dùng',
+        title: 'Success',
+        description: 'User deleted successfully'
       });
       setShowDeleteDialog(false);
       setUserToDelete(null);
@@ -632,25 +339,78 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
-        title: 'Lỗi',
-        description: 'Không thể xóa tài khoản người dùng',
-        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive'
       });
     }
   };
 
-  const getStatusConfirmMessage = (status: 'active' | 'inactive') => {
+  const getStatusConfirmMessage = (status: string) => {
     if (status === 'active') {
-      return 'Are you sure you want to change this account status to inactive? The user will not be able to log in after this change.';
+      return 'Are you sure you want to deactivate this user? They will not be able to access the system until reactivated.';
     }
-    return 'Are you sure you want to change this account status to active? The user will be able to log in after this change.';
+    return 'Are you sure you want to activate this user? They will be able to access the system after activation.';
   };
 
-  const handleSort = (field: SortConfig['field']) => {
-    setSortConfig(prev => ({
-      field,
-      order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
-    }));
+  const getRoleName = (roleId: RoleId): string => {
+    console.log('Role ID:', roleId);
+    switch (roleId) {
+      case RoleId.Admin:
+        return 'Administrator';
+      case RoleId.Employee:
+        return 'Employee';
+      default:
+        return roleId; // Fallback to show the raw role value
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    // Kiểm tra user có tồn tại và có đầy đủ thuộc tính
+    if (!user || !user.username || !user.name || !user.email || !user.roles || !user.status) {
+      return false;
+    }
+
+    const matchesSearch = search.toLowerCase() === '' || 
+      user.username.toLowerCase().includes(search.toLowerCase()) ||
+      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase());
+
+    const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter as RoleId);
+    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  // Update handlers to modify URL
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+    // Add userId và action=edit vào URL
+    setSearchParams({ userId: user.id, action: 'edit' });
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+    // Remove cả userId và action khỏi URL
+    setSearchParams({});
+  };
+
+  // Handle opening profile modal
+  const handleOpenProfile = (user: User) => {
+    setSelectedUser(user);
+    setIsProfileModalOpen(true);
+    // Chỉ thêm userId vào URL, không có action
+    setSearchParams({ userId: user.id });
+  };
+
+  // Handle closing profile modal
+  const handleCloseProfile = () => {
+    setIsProfileModalOpen(false);
+    setSelectedUser(null);
+    // Xóa query params khỏi URL
+    setSearchParams({});
   };
 
   if (!isAdmin) {
@@ -664,97 +424,159 @@ const UserManagement = () => {
         <div className="max-w-5xl mx-auto">
           <ManagementHeader
             title="User Management"
-            description="Manage user accounts and permissions"
+            description="Add, edit, and manage user accounts"
             icon={Users}
           />
           
           <ManagementToolbar
-            searchPlaceholder="Search users..."
+            searchPlaceholder="Search by username, name, or email..."
             searchValue={search}
             onSearchChange={setSearch}
             addButtonText="Add User"
             onAddClick={() => setIsAddModalOpen(true)}
           >
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value={RoleId.Admin}>{getRoleName(RoleId.Admin)}</SelectItem>
+                  <SelectItem value={RoleId.Employee}>{getRoleName(RoleId.Employee)}</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </ManagementToolbar>
 
-<<<<<<< HEAD
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa tài khoản</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa tài khoản của người dùng "{userToDelete?.name}" không?
-              Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowDeleteDialog(false);
-              setUserToDelete(null);
-            }}>
-              Hủy
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser}>
-              Xóa tài khoản
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
->>>>>>> 50d34be (Add user management)
-=======
           {users.length > 0 ? (
             <>
               <div className="border rounded-md shadow-sm overflow-hidden">
-                <UserTable 
-                  users={users}
-                  isLoading={isLoading}
-                  onSort={handleSort}
-                  sortConfig={sortConfig}
-                  onEdit={(user) => {
-                    setSelectedUser(user);
-                    setIsEditModalOpen(true);
-                  }}
-                  onToggleStatus={(user) => {
-                    setUserToToggle(user);
-                    setShowStatusDialog(true);
-                  }}
-                  onDelete={(user) => {
-                    setUserToDelete(user);
-                    setShowDeleteDialog(true);
-                  }}
-                  onViewDetails={(user) => {
-                    setSelectedUser(user);
-                    setIsProfileModalOpen(true);
-                  }}
-                  page={page}
-                  pageSize={pageSize}
-                  total={total}
-                  totalPages={Math.ceil(total / pageSize)}
-                  onPageChange={setPage}
-                  onPageSizeChange={(size: PageSize) => setPageSize(size)}
-                />
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead 
+                        className="font-medium text-gray-600" 
+                        onClick={() => handleSort('username')}
+                      >
+                        <div className="flex items-center cursor-pointer">
+                          Username
+                          {sortConfig.field === 'username' && (
+                            sortConfig.order === 'asc' ? '↑' : '↓'
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-medium text-gray-600"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center cursor-pointer">
+                          Name
+                          {sortConfig.field === 'name' && (
+                            sortConfig.order === 'asc' ? '↑' : '↓'
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-medium text-gray-600"
+                        onClick={() => handleSort('email')}
+                      >
+                        <div className="flex items-center cursor-pointer">
+                          Email
+                          {sortConfig.field === 'email' && (
+                            sortConfig.order === 'asc' ? '↑' : '↓'
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="font-medium text-gray-600">Role</TableHead>
+                      <TableHead className="font-medium text-gray-600">Status</TableHead>
+                      <TableHead className="text-right font-medium text-gray-600">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      user && (
+                        <TableRow key={user.id} className="hover:bg-gray-50 border-b">
+                          <TableCell>
+                            <button
+                              onClick={() => handleOpenProfile(user)}
+                              className="text-gray-900 hover:underline font-medium"
+                            >
+                              {user.username}
+                            </button>
+                          </TableCell>
+                          <TableCell>
+                            {user.name}
+                          </TableCell>
+                          <TableCell>
+                            <a
+                              href={`mailto:${user.email}`}
+                              className="text-gray-600 hover:underline"
+                            >
+                              {user.email}
+                            </a>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.roles.map((roleId) => (
+                                <Badge 
+                                  key={roleId}
+                                  variant={roleId === RoleId.Admin ? 'default' : 'secondary'}
+                                  className={roleId === RoleId.Admin ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}
+                                >
+                                  {getRoleName(roleId)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className={`h-2 w-2 rounded-full ${
+                                user.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                              }`} />
+                              <span className="text-gray-700">{user.status === 'active' ? 'Active' : 'Inactive'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  handleEditUser(user);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant={user.status === 'active' ? 'destructive' : 'outline'}
+                                size="sm"
+                                onClick={() => {
+                                  setUserToToggle(user);
+                                  setShowStatusDialog(true);
+                                }}
+                              >
+                                {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </>
           ) : (
@@ -773,52 +595,9 @@ const UserManagement = () => {
           {/* Add User Modal */}
           <AddUserModal
             open={isAddModalOpen}
-            onOpenChange={(open) => {
-              setIsAddModalOpen(open);
-              if (!open) {
-                setAddUserErrors({});
-              }
-            }}
-            serverErrors={addUserErrors}
-            onSubmit={async (values) => {
-              // Check for duplicates first
-              const isValid = await checkDuplicateFields(values.username, values.email);
-              if (!isValid) {
-                return;
-              }
-
-              try {
-                const response = await apiClient.createUser({
-                  username: values.username,
-                  password: values.password,
-                  name: values.name,
-                  email: values.email,
-                  roles: values.roles,
-                  status: 'active'
-                });
-                
-                toast({
-                  title: 'Success',
-                  description: 'User created successfully',
-                });
-                
-                setIsAddModalOpen(false);
-                setAddUserErrors({});
-                fetchUsers(); // Refresh user list
-              } catch (error: any) {
-                console.error('Error creating user:', error);
-                // Handle server-side validation errors
-                if (error.response?.data?.errors) {
-                  setAddUserErrors(error.response.data.errors);
-                } else {
-                  toast({
-                    title: 'Error',
-                    description: error.response?.data?.message || 'Failed to create user',
-                    variant: 'destructive'
-                  });
-                }
-              }
-            }}
+            onOpenChange={setIsAddModalOpen}
+            onSubmit={handleAddUser}
+            errors={addUserErrors}
           />
 
           {/* Edit User Modal */}
@@ -826,13 +605,30 @@ const UserManagement = () => {
             <EditUserModal
               open={isEditModalOpen}
               onOpenChange={(open) => {
-                setIsEditModalOpen(open);
                 if (!open) {
-                  setSelectedUser(null);
+                  handleCloseEditModal();
                 }
               }}
               defaultValues={selectedUser}
               onSubmit={handleUpdateUser}
+              errors={editUserErrors}
+            />
+          )}
+
+          {/* User Profile Modal */}
+          {selectedUser && (
+            <UserProfileModal
+              open={isProfileModalOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  handleCloseProfile();
+                }
+              }}
+              user={selectedUser}
+              onEdit={() => {
+                setIsProfileModalOpen(false);
+                handleEditUser(selectedUser);
+              }}
             />
           )}
 
@@ -863,14 +659,12 @@ const UserManagement = () => {
             </AlertDialogContent>
           </AlertDialog>
 
-          {/* Delete Confirmation Dialog */}
           <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Xác nhận xóa tài khoản</AlertDialogTitle>
+                <AlertDialogTitle>Delete User</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Bạn có chắc chắn muốn xóa tài khoản của người dùng "{userToDelete?.name}" không?
-                  Hành động này không thể hoàn tác.
+                  Are you sure you want to delete this user? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -878,34 +672,19 @@ const UserManagement = () => {
                   setShowDeleteDialog(false);
                   setUserToDelete(null);
                 }}>
-                  Hủy
+                  Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteUser}>
-                  Xóa tài khoản
+                <AlertDialogAction 
+                  className="bg-red-500 hover:bg-red-600"
+                  onClick={() => userToDelete && handleDeleteUser(userToDelete.id)}
+                >
+                  Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-
-          {selectedUser && (
-            <UserProfileModal
-              open={isProfileModalOpen}
-              onOpenChange={(open) => {
-                setIsProfileModalOpen(open);
-                if (!open) {
-                  setSelectedUser(null);
-                }
-              }}
-              user={selectedUser}
-              onEdit={() => {
-                setIsProfileModalOpen(false);
-                setIsEditModalOpen(true);
-              }}
-            />
-          )}
         </div>
       </div>
->>>>>>> 388d334 (- CRUD for User maangement)
     </div>
   );
 };

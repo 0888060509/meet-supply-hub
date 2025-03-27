@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useMemo, useState } from "react";
 import { 
   Table, 
@@ -8,7 +7,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import TableEmptyState from "@/components/TableEmptyState";
+import { TableEmptyState } from "@/components/TableEmptyState";
 import { ArrowUp, ArrowDown, CircleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";

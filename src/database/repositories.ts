@@ -1,6 +1,9 @@
 import { query, transaction } from './database';
 import { User, Room, Booking, Supply, Request, RequestItem, EquipmentType, RoomEquipment } from './models';
 import crypto from 'crypto';
+import { pool } from './database';
+import { CreateUserDto, UserDTO } from './dto/user.dto';
+import { removeVietnameseAccents } from '../utils/string';
 
 const SALT = 'henry@cuong';
 
@@ -308,4 +311,75 @@ export const RequestRepository = {
     );
     return requestsWithItems;
   }
+};
+
+export const createUser = async (user: CreateUserDto): Promise<UserDTO> => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // Insert user
+    const result = await client.query(
+      'INSERT INTO users (username, password, name, email) VALUES ($1, $2, $3, $4) RETURNING *',
+      [user.username, hashPassword(user.password), user.name, user.email]
+    );
+    
+    const newUser = result.rows[0];
+    
+    // Insert roles
+    for (const role of user.roles) {
+      await client.query(
+        'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
+        [newUser.id, role]
+      );
+    }
+    
+    await client.query('COMMIT');
+    return newUser;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const searchUsers = async (searchTerm: string, page: number, limit: number) => {
+  const offset = (page - 1) * limit;
+  
+  const query = `
+    SELECT u.*, ARRAY_AGG(r.name) as roles
+    FROM users u
+    LEFT JOIN user_roles ur ON u.id = ur.user_id
+    LEFT JOIN roles r ON ur.role_id = r.id
+    WHERE 
+      u.name ILIKE $1
+      OR u.username ILIKE $1
+      OR u.email ILIKE $1
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
+    LIMIT $2 OFFSET $3
+  `;
+
+  const countQuery = `
+    SELECT COUNT(DISTINCT u.id)
+    FROM users u
+    WHERE 
+      u.name ILIKE $1
+      OR u.username ILIKE $1
+      OR u.email ILIKE $1
+  `;
+
+  const searchPattern = `%${searchTerm}%`;
+  const values = [searchPattern, limit, offset];
+
+  const [users, totalCount] = await Promise.all([
+    pool.query(query, values),
+    pool.query(countQuery, [searchPattern])
+  ]);
+
+  return {
+    users: users.rows,
+    total: parseInt(totalCount.rows[0].count)
+  };
 }; 

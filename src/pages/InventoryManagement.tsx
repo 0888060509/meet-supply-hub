@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Boxes, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import SettingsSidebar from "@/components/SettingsSidebar";
-import ManagementHeader from "@/components/ManagementHeader";
-import ManagementToolbar from "@/components/ManagementToolbar";
-import TableEmptyState from "@/components/TableEmptyState";
+import { SettingsSidebar } from "@/components/SettingsSidebar";
+import { ManagementHeader } from "@/components/ManagementHeader";
+import { ManagementToolbar } from "@/components/ManagementToolbar";
+import { TableEmptyState } from "@/components/TableEmptyState";
 import { Button } from "@/components/ui/button";
 import {
   Table,

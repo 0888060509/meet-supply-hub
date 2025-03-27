@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import apiClient from '../lib/api';
+import apiClient, { RoleId } from '../lib/api';
 
 interface User {
   id: string;
   username: string;
   name: string;
-  roles: string[];
+  roles: RoleId[];
 }
 
 interface AuthContextType {
@@ -65,8 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
   };
 
-  const isAdmin = user?.roles.includes('admin') || false;
-  const isEmployee = user?.roles.includes('employee') || false;
+  const isAdmin = user?.roles.includes(RoleId.Admin) || false;
+  const isEmployee = user?.roles.includes(RoleId.Employee) || false;
 
   return (
     <AuthContext.Provider value={{ 

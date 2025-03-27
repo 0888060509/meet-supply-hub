@@ -1,10 +1,9 @@
-
 import React, { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import SettingsSidebar from "@/components/SettingsSidebar";
+import { SettingsSidebar } from "@/components/SettingsSidebar";
 import { LucideIcon } from "lucide-react";
 
 interface AdminLayoutProps {

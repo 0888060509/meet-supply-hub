@@ -21,7 +21,7 @@ export const login = async (req: Request, res: Response) => {
         u.created_at,
         u.last_login,
         u.login_count,
-        ARRAY_AGG(r.name) as roles
+        ARRAY_REMOVE(ARRAY_AGG(r.name), NULL) as roles
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
@@ -51,6 +51,11 @@ export const login = async (req: Request, res: Response) => {
 
     if (!passwordCheck.rows[0].match) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Ensure roles is an array
+    if (!user.roles) {
+      user.roles = [];
     }
 
     // Update last_login and login_count
@@ -88,7 +93,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         u.username, 
         u.name, 
         u.created_at,
-        ARRAY_AGG(r.name) as roles
+        ARRAY_REMOVE(ARRAY_AGG(r.name), NULL) as roles
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
@@ -98,6 +103,11 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Ensure roles is an array
+    if (!result.rows[0].roles) {
+      result.rows[0].roles = [];
     }
 
     res.json(result.rows[0]);

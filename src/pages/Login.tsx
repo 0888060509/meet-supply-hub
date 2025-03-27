@@ -28,7 +28,7 @@ const Login = () => {
     setError("");
     
     if (!username || !password) {
-      setError("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu");
+      setError("Please enter both username and password");
       return;
     }
     
@@ -38,14 +38,16 @@ const Login = () => {
       await login(username, password);
       navigate("/dashboard");
     } catch (err: any) {
-      if (err.response?.data?.code === 'ACCOUNT_INACTIVE') {
-        setError(err.response.data.error);
+      console.error('Login error:', err);
+      if (err.code === 'ERR_NETWORK') {
+        setError("Cannot connect to server. Please check your connection and try again.");
+      } else if (err.response?.data?.code === 'ACCOUNT_INACTIVE') {
+        setError("Your account is inactive. Please contact the administrator.");
       } else if (err.response?.status === 401) {
-        setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+        setError("Invalid username or password");
       } else {
-        setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+        setError(err.response?.data?.message || "An error occurred. Please try again later.");
       }
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }

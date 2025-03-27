@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Calendar, Package, Menu, X, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { RoleId } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +52,7 @@ const Navbar = () => {
   ];
   
   // Add Settings tab for admins
-  if (isAuthenticated && user?.role === "admin") {
+  if (isAuthenticated && user?.roles.includes(RoleId.Admin)) {
     navLinks.push({ 
       name: "Settings", 
       path: "/settings", 
@@ -96,7 +96,7 @@ const Navbar = () => {
               to={link.path}
               className={cn(
                 "px-4 py-2 rounded-md text-sm font-medium flex items-center transition-all duration-200",
-                location.pathname === link.path
+                location.pathname === link.path || location.pathname.startsWith(link.path + '/')
                   ? "bg-accent text-primary"
                   : "text-muted-foreground hover:text-primary hover:bg-accent/50"
               )}
@@ -125,7 +125,7 @@ const Navbar = () => {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.role === "admin" ? "Administrator" : "Employee"}
+                      {user?.roles.includes(RoleId.Admin) ? "Administrator" : "Employee"}
                     </p>
                   </div>
                 </DropdownMenuLabel>

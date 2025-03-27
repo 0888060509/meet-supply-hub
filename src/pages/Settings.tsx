@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { Settings, Users, Clipboard, Calendar, Package, Menu, X } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import SettingsSidebar from "@/components/SettingsSidebar";
+import { SettingsSidebar } from "@/components/SettingsSidebar";
 import { cn } from "@/lib/utils";
 
 const SettingsPage = () => {

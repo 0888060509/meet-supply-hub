@@ -8,19 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'employee';
-  roles: ('admin' | 'employee')[];
-  status: 'active' | 'inactive';
-  created_at?: string;
-  last_login?: string;
-  login_count?: number;
-}
+import { User, RoleId } from "@/lib/api";
 
 interface UserProfileModalProps {
   open: boolean;
@@ -37,7 +25,7 @@ export const UserProfileModal = ({
 }: UserProfileModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>User Profile</DialogTitle>
         </DialogHeader>
@@ -55,7 +43,11 @@ export const UserProfileModal = ({
                 className="bg-[#101828] text-white flex items-center gap-1"
               >
                 <Shield className="h-3 w-3" />
-                {user.role === 'admin' ? 'Administrator' : 'Employee'}
+                {user.roles.map((roleId) => (
+                  <span key={roleId}>
+                    {roleId === RoleId.Admin ? 'Administrator' : 'Employee'}
+                  </span>
+                ))}
               </Badge>
               <Badge 
                 variant="outline" 

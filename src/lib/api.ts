@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-  },
+  }
 });
 
 // Add token to requests
@@ -18,15 +18,33 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error);
+    if (error.code === 'ERR_NETWORK') {
+      console.error('Network error:', error);
+    }
+    return Promise.reject(error);
+  }
+);
+
+export enum RoleId {
+  Admin = "admin",
+  Employee = "employee"
+}
+
 export interface User {
   id: string;
   username: string;
   name: string;
   email: string;
-  roles: string[];
+  roles: RoleId[];
   status: 'active' | 'inactive';
-  created_at?: string;
+  created_at: string;
   last_login?: string;
+  login_count?: number;
 }
 
 export interface LoginResponse {
@@ -49,6 +67,12 @@ export interface GetUsersParams {
   statusFilter?: string;
   sortBy?: 'name' | 'username' | 'email' | 'created_at' | 'last_login';
   sortOrder?: 'asc' | 'desc';
+}
+
+interface CheckDuplicateFieldsParams {
+  username: string;
+  email: string;
+  userId?: string;
 }
 
 export const apiClient = {
@@ -86,8 +110,8 @@ export const apiClient = {
     return response.data;
   },
 
-  checkDuplicateFields: async (fields: { username: string; email: string }): Promise<{ duplicateUsername: boolean; duplicateEmail: boolean }> => {
-    const response = await api.post<{ duplicateUsername: boolean; duplicateEmail: boolean }>('/users/check-duplicate', fields);
+  checkDuplicateFields: async (params: CheckDuplicateFieldsParams): Promise<{ duplicateUsername: boolean; duplicateEmail: boolean }> => {
+    const response = await api.post<{ duplicateUsername: boolean; duplicateEmail: boolean }>('/users/check-duplicate', params);
     return response.data;
   },
 };

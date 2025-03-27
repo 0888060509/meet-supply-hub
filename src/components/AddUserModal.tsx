@@ -17,6 +17,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -27,8 +28,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RoleId } from "@/lib/api";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -40,12 +41,11 @@ const formSchema = z.object({
   email: z.string()
     .min(1, "Email is required")
     .email("Invalid email address"),
-  password: z.string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
-  role: z.enum(["admin", "employee"], {
+  role: z.nativeEnum(RoleId, {
     required_error: "Role is required"
-  })
+  }),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -53,63 +53,94 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: FormValues & { roles: string[] }) => void;
-  defaultValues?: Partial<FormValues>;
-  serverErrors?: {
-    username?: string;
-    email?: string;
-  };
+  onSubmit: (values: FormValues) => void;
+  errors?: Record<string, string[]>;
 }
 
 export const AddUserModal = ({
   open,
   onOpenChange,
   onSubmit,
-  defaultValues = {
-    role: 'employee'
-  },
-  serverErrors
+  errors = {}
 }: AddUserModalProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    defaultValues: {
+      username: '',
+      name: '',
+      email: '',
+      role: RoleId.Employee,
+      password: ''
+    }
   });
 
   // Reset form errors when modal closes
   useEffect(() => {
     if (!open) {
-      form.reset();
+      form.clearErrors();
     }
   }, [open, form]);
 
-  // Update form errors when server errors change
+  // Set server-side errors
   useEffect(() => {
-    if (serverErrors?.username) {
-      form.setError('username', { message: serverErrors.username });
-    }
-    if (serverErrors?.email) {
-      form.setError('email', { message: serverErrors.email });
-    }
-  }, [serverErrors, form]);
-
-  const handleSubmit = (values: FormValues) => {
-    onSubmit({
-      ...values,
-      roles: [values.role] // Convert single role to array for backend compatibility
+    Object.entries(errors).forEach(([key, messages]) => {
+      form.setError(key as keyof FormValues, {
+        type: 'server',
+        message: messages[0]
+      });
     });
+  }, [errors, form]);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      form.reset();
+      setHasChanges(false);
+    }
+  }, [open, form]);
+
+  // Track form changes
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      setHasChanges(true);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const handleDiscard = () => {
+    setShowDiscardDialog(false);
+    setHasChanges(false);
+    form.reset();
+    onOpenChange(false);
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && hasChanges) {
+      setShowDiscardDialog(true);
+    } else {
+      onOpenChange(newOpen);
+    }
+  };
+
+  const handleSubmit = async (values: FormValues) => {
+    await onSubmit(values);
+    setHasChanges(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
-            <div className="space-y-4">
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="username"
@@ -117,12 +148,9 @@ export const AddUserModal = ({
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="e.g., johndoe"
-                        {...field}
-                      />
+                      <Input {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors?.username?.[0]}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -132,14 +160,11 @@ export const AddUserModal = ({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="e.g., John Doe"
-                        {...field}
-                      />
+                      <Input {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors?.name?.[0]}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -151,13 +176,34 @@ export const AddUserModal = ({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email"
-                        placeholder="e.g., john@example.com"
-                        {...field}
-                      />
+                      <Input {...field} type="email" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors?.email?.[0]}</FormMessage>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value as RoleId)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={RoleId.Admin}>Administrator</SelectItem>
+                        <SelectItem value={RoleId.Employee}>Employee</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage>{errors?.role?.[0]}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -172,69 +218,57 @@ export const AddUserModal = ({
                       <div className="relative">
                         <Input
                           type={showPassword ? "text" : "password"}
-                          placeholder="Enter password"
-                          className="pr-10"
                           {...field}
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
                         >
                           {showPassword ? (
-                            <EyeOffIcon className="h-4 w-4" />
+                            <EyeOffIcon className="h-4 w-4 text-gray-400" />
                           ) : (
-                            <EyeIcon className="h-4 w-4" />
+                            <EyeIcon className="h-4 w-4 text-gray-400" />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormDescription>
+                      Must be at least 8 characters
+                    </FormDescription>
+                    <FormMessage>{errors?.password?.[0]}</FormMessage>
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="employee">Employee</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              <DialogFooter>
+                <Button type="submit">Add User</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                Create User
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Are you sure you want to discard them?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDiscardDialog(false)}>
+              Continue Editing
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDiscard}>
+              Discard Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
