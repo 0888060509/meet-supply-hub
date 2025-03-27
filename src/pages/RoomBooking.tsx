@@ -158,15 +158,9 @@ const RoomBooking = () => {
                       Explore available spaces for different meeting scenarios
                     </p>
                   </div>
-                  
-                  <div className="mt-4 md:mt-0">
-                    <Badge variant="outline" className="bg-primary/10">
-                      {rooms.length} Rooms Available
-                    </Badge>
-                  </div>
                 </div>
                 
-                <RoomsDisplay rooms={rooms} onBookNow={handleBookNow} />
+                <RoomsDisplay rooms={rooms} />
               </div>
             </div>
           </> : <div className="animate-fade-in">

@@ -1,19 +1,16 @@
 
 import React from "react";
 import { Room } from "@/lib/data";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Info, ExternalLink, Users, Calendar, Monitor } from "lucide-react";
+import { MapPin, Users, Monitor } from "lucide-react";
 
 interface RoomsDisplayProps {
   rooms: Room[];
-  onBookNow?: (roomId: string) => void;
   readOnly?: boolean;
 }
 
-const RoomsDisplay = ({ rooms, onBookNow, readOnly = false }: RoomsDisplayProps) => {
+const RoomsDisplay = ({ rooms, readOnly = true }: RoomsDisplayProps) => {
   // Define common scenarios based on room equipment and capacity
   const getScenarios = (room: Room): string[] => {
     const scenarios = [];
@@ -65,19 +62,12 @@ const RoomsDisplay = ({ rooms, onBookNow, readOnly = false }: RoomsDisplayProps)
             
             <CardContent className="p-5">
               <div className="flex flex-col space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-lg">{room.name}</h3>
-                    <p className="text-sm text-muted-foreground flex items-center mt-1">
-                      <MapPin className="h-3.5 w-3.5 mr-1 inline" />
-                      {room.location}
-                    </p>
-                  </div>
-                  {!readOnly && onBookNow && (
-                    <Button size="sm" onClick={() => onBookNow(room.id)}>
-                      Book
-                    </Button>
-                  )}
+                <div>
+                  <h3 className="font-medium text-lg">{room.name}</h3>
+                  <p className="text-sm text-muted-foreground flex items-center mt-1">
+                    <MapPin className="h-3.5 w-3.5 mr-1 inline" />
+                    {room.location}
+                  </p>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm">
@@ -113,29 +103,6 @@ const RoomsDisplay = ({ rooms, onBookNow, readOnly = false }: RoomsDisplayProps)
                 )}
               </div>
             </CardContent>
-            
-            <CardFooter className="px-5 py-3 bg-muted/10 border-t flex justify-between">
-              <Link 
-                to={`/rooms/${room.id}`}
-                className="flex items-center text-sm text-primary hover:text-primary/80"
-              >
-                <Info className="h-4 w-4 mr-1" />
-                Details
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </Link>
-              
-              {!readOnly && onBookNow && (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="flex items-center gap-1" 
-                  onClick={() => onBookNow(room.id)}
-                >
-                  <Calendar className="h-3.5 w-3.5" />
-                  Schedule
-                </Button>
-              )}
-            </CardFooter>
           </Card>
         );
       })}
