@@ -85,8 +85,8 @@ const RoomBookingSidebar = () => {
   
   return (
     <div className={`h-full flex flex-col ${isMobile ? 'pb-4' : ''}`}>
-      <Card className="flex-1 shadow-md border-primary/10">
-        <CardHeader className="pb-2">
+      <Card className="flex-1 shadow-md border-primary/10 overflow-hidden">
+        <CardHeader className="pb-2 pt-4">
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-xl font-bold">{room.name}</CardTitle>
@@ -108,7 +108,7 @@ const RoomBookingSidebar = () => {
           </div>
         </CardHeader>
         
-        <CardContent className="pb-2">
+        <CardContent className="pb-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 180px)" }}>
           <div className="space-y-4">
             {/* Room Details */}
             <div className="flex items-center justify-between">
