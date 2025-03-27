@@ -125,13 +125,6 @@ const RoomBooking = () => {
               Find and book the perfect space for your meetings
             </p>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="bg-accent/50 gap-1 px-3 py-1">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>Today's Bookings: {bookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length}</span>
-            </Badge>
-          </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={value => handleTabChange(value as "rooms" | "bookings")} className="mb-6">

@@ -257,9 +257,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const canMakeRecurring = selectedTimeRange !== null && selectedTimeRange.start && selectedTimeRange.end;
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      <div className="lg:col-span-1 xl:col-span-1">
-        <Card className="shadow-sm sticky top-4">
+    <div className="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-10 gap-4">
+      <div className="lg:col-span-3 xl:col-span-3">
+        <Card className="shadow-sm sticky top-4 h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Meeting Requirements</CardTitle>
           </CardHeader>
@@ -469,11 +469,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         </Card>
       </div>
       
-      <div className="lg:col-span-4 xl:col-span-5">
-        <Card className="shadow-sm">
+      <div className="lg:col-span-7 xl:col-span-7">
+        <Card className="shadow-sm h-full flex flex-col">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Meeting Rooms Timeline</CardTitle>
+              <CardTitle className="text-lg">
+                {isToday(date) ? "Today's Schedule" : format(date, "EEEE, MMMM do, yyyy")}
+              </CardTitle>
               
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <div className="flex items-center">
@@ -491,9 +493,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="border rounded-lg overflow-hidden">
-              <div className="relative flex flex-col">
+          <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
+            <div className="border rounded-lg overflow-hidden flex-grow flex flex-col">
+              <div className="relative flex flex-col flex-grow">
                 <div className="sticky top-0 z-20 flex border-b bg-white">
                   <div className="w-[200px] min-w-[200px] border-r bg-gray-100 flex items-center p-4">
                     <span className="font-medium">Room</span>
@@ -655,42 +657,6 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex-wrap gap-2 pt-4">
-            {date && (
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-medium mr-2 mt-1">Quick Select:</span>
-                {["Morning (9-12)", "Afternoon (1-5)", "Hour (Next Available)"].map(slot => (
-                  <Button
-                    key={slot}
-                    variant="outline"
-                    size="sm"
-                    className="bg-primary-50"
-                    onClick={() => {
-                      if (slot === "Morning (9-12)") {
-                        handleTimeRangeSelect("09:00", "12:00");
-                      } else if (slot === "Afternoon (1-5)") {
-                        handleTimeRangeSelect("13:00", "17:00");
-                      } else {
-                        const now = new Date();
-                        const currentHour = now.getHours();
-                        const startHour = currentHour < 8 ? 8 : 
-                                        currentHour >= 17 ? 8 : 
-                                        currentHour + 1;
-                        const endHour = startHour + 1 > 17 ? 18 : startHour + 1;
-                        
-                        handleTimeRangeSelect(
-                          `${startHour.toString().padStart(2, '0')}:00`,
-                          `${endHour.toString().padStart(2, '0')}:00`
-                        );
-                      }
-                    }}
-                  >
-                    {slot}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </CardFooter>
         </Card>
       </div>
       
