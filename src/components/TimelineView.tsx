@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ScrollArea } from "@/components/ui/scroll-area";
 import RecurringBookingModal from "./RecurringBookingModal";
 import { toast } from "sonner";
+
 const equipmentIcons: Record<string, React.ReactNode> = {
   "Projector": <Projector className="h-4 w-4" />,
   "Whiteboard": <StickyNote className="h-4 w-4" />,
@@ -27,11 +28,13 @@ const equipmentIcons: Record<string, React.ReactNode> = {
   "WiFi": <Wifi className="h-4 w-4" />,
   "Presentation Setup": <Presentation className="h-4 w-4" />
 };
+
 interface TimelineViewProps {
   rooms: Room[];
   bookings: Booking[];
   onSelectTimeSlot: (roomId: string, date: Date, startTime: string, endTime: string) => void;
 }
+
 const TimelineView = ({
   rooms,
   bookings,
@@ -49,7 +52,9 @@ const TimelineView = ({
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
+
   const equipmentOptions = Array.from(new Set(rooms.flatMap(room => room.equipment)));
+
   const generateTimeSlots = () => {
     const slots = [];
     const startHour = 8; // 8 AM
@@ -67,7 +72,9 @@ const TimelineView = ({
     }
     return slots;
   };
+
   const timeSlots = generateTimeSlots();
+
   const handleTimeRangeSelect = (startTime: string, endTime: string) => {
     setSelectedTimeRange({
       start: startTime,
@@ -81,6 +88,7 @@ const TimelineView = ({
       setWarningMessage(null);
     }
   };
+
   const filteredRooms = rooms.filter(room => {
     if (attendees > room.capacity) {
       return false;
@@ -90,12 +98,14 @@ const TimelineView = ({
     const matchesSearch = searchTerm ? room.name.toLowerCase().includes(searchTerm.toLowerCase()) || room.location.toLowerCase().includes(searchTerm.toLowerCase()) : true;
     return matchesCapacity && matchesEquipment && matchesSearch;
   });
+
   const isTimeSlotAvailable = (roomId: string, timeSlot: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return !bookings.some(booking => {
       return booking.roomId === roomId && booking.date === dateStr && booking.startTime <= timeSlot && booking.endTime > timeSlot;
     });
   };
+
   const isTimeSlotSoonBooked = (roomId: string, timeSlot: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const currentTime = new Date().toLocaleTimeString('en-US', {
@@ -113,6 +123,7 @@ const TimelineView = ({
     const isWithinNextHour = timeSlotMinutes >= currentMinutes && timeSlotMinutes <= currentMinutes + 60;
     return isWithinNextHour && !isTimeSlotAvailable(roomId, timeSlot);
   };
+
   const getBookingInfo = (roomId: string, timeSlot: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const booking = bookings.find(booking => {
@@ -120,6 +131,7 @@ const TimelineView = ({
     });
     return booking;
   };
+
   const getNextBookingInfo = (roomId: string, timeSlot: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const [hour, minute] = timeSlot.split(':').map(Number);
@@ -137,6 +149,7 @@ const TimelineView = ({
     });
     return nextBooking;
   };
+
   const handleTimeSlotClick = (roomId: string, startTime: string) => {
     const startIndex = timeSlots.indexOf(startTime);
     const slotsForOneHour = 60 / timeSlotDuration;
@@ -166,24 +179,28 @@ const TimelineView = ({
       onSelectTimeSlot(roomId, date, startTime, endTime);
     }
   };
+
   const toggleEquipment = (equipment: string) => {
     setSelectedEquipment(prev => prev.includes(equipment) ? prev.filter(e => e !== equipment) : [...prev, equipment]);
   };
+
   const handleRecurringConfirm = (bookingInstances: any[]) => {
     toast.success(`${bookingInstances.length} recurring bookings created successfully!`);
     console.log("Recurring bookings created:", bookingInstances);
   };
+
   const canMakeRecurring = selectedTimeRange !== null && selectedTimeRange.start && selectedTimeRange.end;
 
-  // Determine zoom slider milestones
   const zoomMilestones = [15, 30, 45, 60];
-  return <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-4">
-      <div className="lg:col-span-3 xl:col-span-3">
-        <Card className="shadow-sm sticky top-4 h-full">
-          <CardHeader className="pb-2">
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-4 h-[calc(100vh-10rem)]">
+      <div className="lg:col-span-3 xl:col-span-3 h-full">
+        <Card className="shadow-sm h-full flex flex-col">
+          <CardHeader className="pb-2 flex items-center">
             <CardTitle className="text-lg">Meeting Requirements</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-3 sm:p-4">
+          <CardContent className="space-y-4 p-3 sm:p-4 overflow-auto flex-grow">
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -211,14 +228,21 @@ const TimelineView = ({
                   </PopoverTrigger>
                   <PopoverContent>
                     <div className="grid grid-cols-2 gap-1">
-                      {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => <Button key={time} variant="outline" className="text-center text-xs" onClick={() => {
-                      const [hour, min] = time.split(':').map(Number);
-                      const endHour = hour + 1 > 17 ? 18 : hour + 1;
-                      const endTime = `${endHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-                      handleTimeRangeSelect(time, endTime);
-                    }}>
+                      {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(time => (
+                        <Button
+                          key={time}
+                          variant="outline"
+                          className="text-center text-xs"
+                          onClick={() => {
+                            const [hour, min] = time.split(':').map(Number);
+                            const endHour = hour + 1 > 17 ? 18 : hour + 1;
+                            const endTime = `${endHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                            handleTimeRangeSelect(time, endTime);
+                          }}
+                        >
                           {time}
-                        </Button>)}
+                        </Button>
+                      ))}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -231,13 +255,21 @@ const TimelineView = ({
                   </PopoverTrigger>
                   <PopoverContent>
                     <div className="grid grid-cols-2 gap-1">
-                      {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => <Button key={time} variant="outline" className="text-center text-xs" disabled={selectedTimeRange?.start && selectedTimeRange.start >= time} onClick={() => {
-                      if (selectedTimeRange?.start) {
-                        handleTimeRangeSelect(selectedTimeRange.start, time);
-                      }
-                    }}>
+                      {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map(time => (
+                        <Button
+                          key={time}
+                          variant="outline"
+                          className="text-center text-xs"
+                          disabled={selectedTimeRange?.start && selectedTimeRange.start >= time}
+                          onClick={() => {
+                            if (selectedTimeRange?.start) {
+                              handleTimeRangeSelect(selectedTimeRange.start, time);
+                            }
+                          }}
+                        >
                           {time}
-                        </Button>)}
+                        </Button>
+                      ))}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -253,7 +285,7 @@ const TimelineView = ({
                 <Button variant="outline" size="sm" className="h-6 w-6 p-0" onClick={() => setAttendees(prev => Math.max(1, prev - 1))}>
                   -
                 </Button>
-                <div className="flex-1">
+                <div className="flex-1 flex items-center">
                   <Slider value={[attendees]} min={1} max={20} step={1} onValueChange={value => setAttendees(value[0])} />
                 </div>
                 <Button variant="outline" size="sm" className="h-6 w-6 p-0" onClick={() => setAttendees(prev => Math.min(20, prev + 1))}>
@@ -266,30 +298,52 @@ const TimelineView = ({
               <Label className="text-xs">Required Equipment</Label>
               <ScrollArea className="h-24 w-full rounded-md border p-2">
                 <div className="space-y-1">
-                  {equipmentOptions.map(equipment => <div key={equipment} className="flex items-center space-x-2">
-                      <Checkbox id={`equipment-${equipment}`} checked={selectedEquipment.includes(equipment)} onCheckedChange={() => toggleEquipment(equipment)} className="h-3.5 w-3.5" />
+                  {equipmentOptions.map(equipment => (
+                    <div key={equipment} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`equipment-${equipment}`}
+                        checked={selectedEquipment.includes(equipment)}
+                        onCheckedChange={() => toggleEquipment(equipment)}
+                        className="h-3.5 w-3.5"
+                      />
                       <Label htmlFor={`equipment-${equipment}`} className="text-xs cursor-pointer flex items-center gap-1">
                         {equipmentIcons[equipment] || <AlertTriangle className="h-3 w-3" />}
                         {equipment}
                       </Label>
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             </div>
             
             <div className="space-y-2">
               <Label className="text-xs">Search Rooms</Label>
-              <Input placeholder="Room name or location" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="text-xs h-8" />
+              <Input
+                placeholder="Room name or location"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="text-xs h-8"
+              />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label className="text-xs">Timeline Zoom</Label>
-                
               </div>
-              <Slider value={[timeSlotDuration]} min={15} max={60} step={15} onValueChange={value => setTimeSlotDuration(value[0])} className="mt-2" />
+              <div className="flex items-center">
+                <Slider
+                  value={[timeSlotDuration]}
+                  min={15}
+                  max={60}
+                  step={15}
+                  onValueChange={value => setTimeSlotDuration(value[0])}
+                  className="mt-2"
+                />
+              </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                {zoomMilestones.map(milestone => <span key={milestone} className="text-center">{milestone} min</span>)}
+                {zoomMilestones.map(milestone => (
+                  <span key={milestone} className="text-center">{milestone} min</span>
+                ))}
               </div>
             </div>
             
@@ -297,33 +351,46 @@ const TimelineView = ({
               <div className="text-xs text-muted-foreground mb-1">Available Rooms</div>
               <div className="font-medium text-sm">{filteredRooms.length} of {rooms.length}</div>
               
-              {selectedEquipment.length > 0 && <div className="mt-2 flex flex-wrap gap-1">
-                  {selectedEquipment.map(eq => <Badge key={eq} variant="outline" className="text-[10px] flex items-center gap-1 px-1.5 py-0.5">
+              {selectedEquipment.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedEquipment.map(eq => (
+                    <Badge key={eq} variant="outline" className="text-[10px] flex items-center gap-1 px-1.5 py-0.5">
                       {equipmentIcons[eq] || <AlertTriangle className="h-2.5 w-2.5" />}
                       {eq}
-                    </Badge>)}
-                </div>}
+                    </Badge>
+                  ))}
+                </div>
+              )}
               
-              {selectedTimeRange?.start && selectedTimeRange?.end && <Button variant="outline" size="sm" className="w-full mt-3 gap-1.5 bg-primary-50" onClick={() => setRecurringModalOpen(true)}>
+              {selectedTimeRange?.start && selectedTimeRange?.end && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3 gap-1.5 bg-primary-50"
+                  onClick={() => setRecurringModalOpen(true)}
+                >
                   <Calendar className="h-3.5 w-3.5" />
                   Make this recurring
-                </Button>}
+                </Button>
+              )}
             </div>
 
-            {warningMessage && <Alert className="bg-amber-50 border-amber-200 mt-2 py-2">
+            {warningMessage && (
+              <Alert className="bg-amber-50 border-amber-200 mt-2 py-2">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                 <AlertDescription className="text-amber-800 text-xs">
                   {warningMessage}
                 </AlertDescription>
-              </Alert>}
+              </Alert>
+            )}
           </CardContent>
         </Card>
       </div>
       
-      <div className="lg:col-span-9 xl:col-span-9">
+      <div className="lg:col-span-9 xl:col-span-9 h-full">
         <Card className="shadow-sm h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-2 flex items-center z-10 sticky top-0 bg-background">
+            <div className="flex items-center justify-between w-full">
               <CardTitle className="text-lg">
                 {isToday(date) ? "Today's Schedule" : format(date, "EEEE, MMMM do, yyyy")}
               </CardTitle>
@@ -344,123 +411,169 @@ const TimelineView = ({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
-            <div className="border rounded-lg overflow-hidden flex-grow flex flex-col">
-              <div className="relative flex flex-col flex-grow">
+          <CardContent className="p-0 flex-grow overflow-hidden">
+            <div className="border rounded-lg overflow-hidden h-full flex flex-col">
+              <div className="relative flex flex-col h-full">
                 <div className="sticky top-0 z-20 flex border-b bg-white">
-                  <div className="w-[200px] min-w-[200px] border-r bg-gray-100 flex items-center p-4">
+                  <div className="w-[200px] min-w-[200px] border-r bg-gray-100 flex items-center p-4 sticky left-0 z-10">
                     <span className="font-medium">Room</span>
                   </div>
-                  <div className="overflow-hidden" style={{
-                  width: 'calc(100% - 200px)'
-                }} id="header-scroll-container">
+                  <div className="overflow-hidden" style={{ width: 'calc(100% - 200px)' }} id="header-scroll-container">
                     <div className="flex min-w-max h-full">
-                      {timeSlots.map((time, index) => <div key={time} className={cn("min-w-[60px] w-[60px] flex-shrink-0 flex items-center justify-center p-4 text-xs font-medium", index % 2 === 0 ? "border-l bg-gray-100" : "", selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : "")}>
+                      {timeSlots.map((time, index) => (
+                        <div
+                          key={time}
+                          className={cn(
+                            "min-w-[60px] w-[60px] flex-shrink-0 flex items-center justify-center p-4 text-xs font-medium",
+                            index % 2 === 0 ? "border-l bg-gray-100" : "",
+                            selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
+                          )}
+                        >
                           {time}
-                        </div>)}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
                 
-                {filteredRooms.length === 0 ? <div className="p-8 text-center text-muted-foreground">
+                {filteredRooms.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
                     No rooms match your criteria. Try adjusting your filters.
-                  </div> : <div className="flex-1 flex overflow-hidden">
-                    <div className="w-[200px] min-w-[200px] bg-white z-10 border-r" id="room-column">
-                      {filteredRooms.map(room => <div key={`fixed-${room.id}`} className="p-4 font-medium border-b last:border-b-0 h-[100px]">
-                          <div className="flex flex-col h-full justify-center">
-                            <div className="font-medium">{room.name}</div>
-                            
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {room.equipment.map(eq => <Tooltip key={eq}>
-                                  <TooltipTrigger>
-                                    <div className="text-primary">
-                                      {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right">{eq}</TooltipContent>
-                                </Tooltip>)}
-                            </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-auto">
+                    <div className="relative">
+                      <div className="w-[200px] min-w-[200px] bg-white border-r absolute left-0 z-10 h-full">
+                        {filteredRooms.map(room => (
+                          <div key={`fixed-${room.id}`} className="p-4 font-medium border-b last:border-b-0 h-[80px]">
+                            <div className="flex flex-col h-full justify-center">
+                              <div className="font-medium">{room.name}</div>
+                              
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {room.equipment.map(eq => (
+                                  <Tooltip key={eq}>
+                                    <TooltipTrigger>
+                                      <div className="text-primary">
+                                        {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right">{eq}</TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </div>
 
-                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                              <Users className="h-3 w-3" />
-                              <span>Capacity: {room.capacity}</span>
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Users className="h-3 w-3" />
+                                <span>Capacity: {room.capacity}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>)}
-                    </div>
-                    
-                    <div className="overflow-x-auto flex-1" id="timeline-content" onScroll={e => {
-                  const headerContainer = document.getElementById('header-scroll-container');
-                  if (headerContainer) {
-                    headerContainer.scrollLeft = e.currentTarget.scrollLeft;
-                  }
-                  const roomColumn = document.getElementById('room-column');
-                  if (roomColumn) {
-                    roomColumn.scrollTop = e.currentTarget.scrollTop;
-                  }
-                }}>
-                      <div className="min-w-max">
-                        <TooltipProvider>
-                          {filteredRooms.map(room => <div key={room.id} className="border-b last:border-b-0 h-[100px]">
-                              <div className="hidden">{room.name}</div>
-                              
-                              <div className="flex h-full">
-                                {timeSlots.map((time, index) => {
-                            const isAvailable = isTimeSlotAvailable(room.id, time);
-                            const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
-                            const booking = getBookingInfo(room.id, time);
-                            const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
-                            const isInSelectedRange = selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end;
-                            const isAvailableInRange = isInSelectedRange && isAvailable;
-                            const isConflictingWithRange = isInSelectedRange && !isAvailable;
-                            return <Tooltip key={`${room.id}-${time}`}>
-                                      <TooltipTrigger asChild>
-                                        <div className={cn("min-w-[60px] w-[60px] flex-shrink-0 border-r last:border-r-0 relative transition-colors duration-150 h-full", index % 2 === 0 ? "border-l" : "", isAvailable ? "bg-green-100 hover:bg-green-200 cursor-pointer" : isSoonBooked ? "bg-amber-100 hover:bg-amber-200" : "bg-red-100 hover:bg-red-200", isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400", isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500")} onClick={() => {
-                                  if (isAvailable) {
-                                    handleTimeSlotClick(room.id, time);
-                                  }
-                                }} />
-                                      </TooltipTrigger>
-                                      <TooltipContent side="right" className="max-w-xs z-50">
-                                        {isAvailable ? <div>
-                                            <div className="font-medium text-green-600">Available</div>
-                                            <div className="text-sm">
-                                              {nextBooking ? <span>Next booking starts at {nextBooking.startTime}</span> : <span>Room is free for the rest of the day</span>}
+                        ))}
+                      </div>
+                      
+                      <div className="overflow-x-auto ml-[200px]" id="timeline-content" onScroll={e => {
+                        const headerContainer = document.getElementById('header-scroll-container');
+                        if (headerContainer) {
+                          headerContainer.scrollLeft = e.currentTarget.scrollLeft;
+                        }
+                      }}>
+                        <div className="min-w-max">
+                          <TooltipProvider>
+                            {filteredRooms.map(room => (
+                              <div key={room.id} className="border-b last:border-b-0 h-[80px]">
+                                <div className="hidden">{room.name}</div>
+                                
+                                <div className="flex h-full">
+                                  {timeSlots.map((time, index) => {
+                                    const isAvailable = isTimeSlotAvailable(room.id, time);
+                                    const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
+                                    const booking = getBookingInfo(room.id, time);
+                                    const nextBooking = isAvailable ? getNextBookingInfo(room.id, time) : null;
+                                    const isInSelectedRange = selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end;
+                                    const isAvailableInRange = isInSelectedRange && isAvailable;
+                                    const isConflictingWithRange = isInSelectedRange && !isAvailable;
+                                    
+                                    return (
+                                      <Tooltip key={`${room.id}-${time}`}>
+                                        <TooltipTrigger asChild>
+                                          <div
+                                            className={cn(
+                                              "min-w-[60px] w-[60px] flex-shrink-0 border-r last:border-r-0 relative transition-colors duration-150 h-full",
+                                              index % 2 === 0 ? "border-l" : "",
+                                              isAvailable ? "bg-green-100 hover:bg-green-200 cursor-pointer" : isSoonBooked ? "bg-amber-100 hover:bg-amber-200" : "bg-red-100 hover:bg-red-200",
+                                              isAvailableInRange && "bg-blue-200 hover:bg-blue-300 border border-blue-400",
+                                              isConflictingWithRange && "bg-red-300 hover:bg-red-400 border border-red-500"
+                                            )}
+                                            onClick={() => {
+                                              if (isAvailable) {
+                                                handleTimeSlotClick(room.id, time);
+                                              }
+                                            }}
+                                          />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="max-w-xs z-50">
+                                          {isAvailable ? (
+                                            <div>
+                                              <div className="font-medium text-green-600">Available</div>
+                                              <div className="text-sm">
+                                                {nextBooking ? (
+                                                  <span>Next booking starts at {nextBooking.startTime}</span>
+                                                ) : (
+                                                  <span>Room is free for the rest of the day</span>
+                                                )}
+                                              </div>
+                                              <div className="text-xs mt-1 text-muted-foreground">
+                                                Click to book from {time}
+                                              </div>
                                             </div>
-                                            <div className="text-xs mt-1 text-muted-foreground">
-                                              Click to book from {time}
+                                          ) : (
+                                            <div>
+                                              <div className="font-medium text-red-600">Booked</div>
+                                              {booking && (
+                                                <>
+                                                  <div className="text-sm font-medium">{booking.title}</div>
+                                                  <div className="text-xs text-muted-foreground">
+                                                    {booking.startTime} - {booking.endTime}
+                                                  </div>
+                                                </>
+                                              )}
                                             </div>
-                                          </div> : <div>
-                                            <div className="font-medium text-red-600">Booked</div>
-                                            {booking && <>
-                                                <div className="text-sm font-medium">{booking.title}</div>
-                                                <div className="text-xs text-muted-foreground">
-                                                  {booking.startTime} - {booking.endTime}
-                                                </div>
-                                              </>}
-                                          </div>}
-                                      </TooltipContent>
-                                    </Tooltip>;
-                          })}
+                                          )}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>)}
-                        </TooltipProvider>
+                            ))}
+                          </TooltipProvider>
+                        </div>
                       </div>
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
       
-      <RecurringBookingModal isOpen={recurringModalOpen} onClose={() => setRecurringModalOpen(false)} onConfirm={handleRecurringConfirm} initialData={selectedTimeRange ? {
-      date,
-      startTime: selectedTimeRange.start,
-      endTime: selectedTimeRange.end,
-      attendees,
-      selectedEquipment
-    } : null} rooms={rooms} bookings={bookings} />
-    </div>;
+      <RecurringBookingModal
+        isOpen={recurringModalOpen}
+        onClose={() => setRecurringModalOpen(false)}
+        onConfirm={handleRecurringConfirm}
+        initialData={selectedTimeRange ? {
+          date,
+          startTime: selectedTimeRange.start,
+          endTime: selectedTimeRange.end,
+          attendees,
+          selectedEquipment
+        } : null}
+        rooms={rooms}
+        bookings={bookings}
+      />
+    </div>
+  );
 };
+
 export default TimelineView;
