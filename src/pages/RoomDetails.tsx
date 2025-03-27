@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { rooms } from "@/lib/data";
@@ -120,12 +119,9 @@ const RoomDetails = () => {
         </p>
       </div>
       
-      <ResizablePanelGroup 
-        direction="horizontal" 
-        className="min-h-[600px] rounded-lg border"
-      >
+      <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
         <ResizablePanel defaultSize={70} minSize={40}>
-          <div className="h-full p-6 overflow-auto">
+          <div className="h-full p-6">
             <div className="grid grid-cols-1 gap-6 h-full">
               <Card className="overflow-hidden">
                 <div 

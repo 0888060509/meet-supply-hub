@@ -261,13 +261,13 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
   const zoomMilestones = [15, 30, 45, 60];
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4" style={{ height: "calc(100vh - 20rem)" }}>
-      <div className="lg:col-span-1">
-        <Card className="shadow-sm h-full overflow-hidden flex flex-col">
-          <CardHeader className="pb-0 pt-3 px-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-4">
+      <div className="lg:col-span-3 xl:col-span-3">
+        <Card className="shadow-sm sticky top-4 h-full">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg">Meeting Requirements</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-3 sm:p-4 flex-1 overflow-y-auto">
+          <CardContent className="space-y-4 p-3 sm:p-4">
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -363,7 +363,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 >
                   -
                 </Button>
-                <div className="flex-1 flex items-center">
+                <div className="flex-1">
                   <Slider
                     value={[attendees]}
                     min={1}
@@ -429,6 +429,7 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                 max={60}
                 step={15}
                 onValueChange={(value) => setTimeSlotDuration(value[0])}
+                className="mt-2"
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 {zoomMilestones.map(milestone => (
@@ -477,9 +478,9 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
         </Card>
       </div>
       
-      <div className="lg:col-span-3">
+      <div className="lg:col-span-9 xl:col-span-9">
         <Card className="shadow-sm h-full flex flex-col">
-          <CardHeader className="pb-0 pt-3 px-4">
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">
                 {isToday(date) ? "Today's Schedule" : format(date, "EEEE, MMMM do, yyyy")}
@@ -501,73 +502,93 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 flex-grow overflow-hidden">
-            <div className="h-full overflow-hidden flex flex-col">
-              <div className="flex-1 overflow-auto">
-                <div className="min-h-[640px] h-full flex flex-col">
-                  <div className="sticky top-0 z-20 flex border-b bg-white">
-                    <div className="w-[200px] min-w-[200px] border-r bg-gray-100 flex items-center p-4 sticky left-0 z-30">
-                      <span className="font-medium">Room</span>
-                    </div>
-                    <div className="overflow-x-auto" style={{ width: 'calc(100% - 200px)' }}>
-                      <div className="flex min-w-max">
-                        {timeSlots.map((time, index) => (
-                          <div 
-                            key={time} 
-                            className={cn(
-                              "min-w-[60px] w-[60px] flex-shrink-0 flex items-center justify-center p-4 text-xs font-medium",
-                              index % 2 === 0 ? "border-l bg-gray-100" : "",
-                              selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
-                            )}
-                          >
-                            {time}
-                          </div>
-                        ))}
-                      </div>
+          <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
+            <div className="border rounded-lg overflow-hidden flex-grow flex flex-col">
+              <div className="relative flex flex-col flex-grow">
+                <div className="sticky top-0 z-20 flex border-b bg-white">
+                  <div className="w-[200px] min-w-[200px] border-r bg-gray-100 flex items-center p-4">
+                    <span className="font-medium">Room</span>
+                  </div>
+                  <div className="overflow-hidden" style={{ width: 'calc(100% - 200px)' }} id="header-scroll-container">
+                    <div className="flex min-w-max h-full">
+                      {timeSlots.map((time, index) => (
+                        <div 
+                          key={time} 
+                          className={cn(
+                            "min-w-[60px] w-[60px] flex-shrink-0 flex items-center justify-center p-4 text-xs font-medium",
+                            index % 2 === 0 ? "border-l bg-gray-100" : "",
+                            selectedTimeRange && time >= selectedTimeRange.start && time < selectedTimeRange.end ? "bg-blue-100" : ""
+                          )}
+                        >
+                          {time}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  
-                  <div className="flex-1 overflow-auto">
-                    {filteredRooms.length === 0 ? (
-                      <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                        <div>
-                          <AlertTriangle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-                          <p>No rooms match your criteria. Try adjusting your filters.</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        {filteredRooms.map((room) => (
-                          <div 
-                            key={room.id} 
-                            className="flex border-b h-[80px]"
-                          >
-                            <div className="w-[200px] min-w-[200px] p-4 font-medium sticky left-0 z-10 bg-white border-r">
-                              <div className="flex flex-col h-full justify-between">
-                                <div className="font-medium">{room.name}</div>
-                                
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {room.equipment.map(eq => (
-                                    <Tooltip key={eq}>
-                                      <TooltipTrigger>
-                                        <div className="text-primary">
-                                          {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
-                                        </div>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="right">{eq}</TooltipContent>
-                                    </Tooltip>
-                                  ))}
-                                </div>
-
-                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                  <Users className="h-3 w-3" />
-                                  <span>Capacity: {room.capacity}</span>
-                                </div>
-                              </div>
-                            </div>
+                </div>
+                
+                {filteredRooms.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    No rooms match your criteria. Try adjusting your filters.
+                  </div>
+                ) : (
+                  <div className="flex-1 flex overflow-hidden">
+                    <div className="w-[200px] min-w-[200px] bg-white z-10 border-r" id="room-column">
+                      {filteredRooms.map((room) => (
+                        <div 
+                          key={`fixed-${room.id}`} 
+                          className="p-4 font-medium border-b last:border-b-0 h-[100px]"
+                        >
+                          <div className="flex flex-col h-full justify-center">
+                            <div className="font-medium">{room.name}</div>
                             
-                            <div className="flex h-full min-w-max">
-                              <TooltipProvider>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {room.equipment.map(eq => (
+                                <Tooltip key={eq}>
+                                  <TooltipTrigger>
+                                    <div className="text-primary">
+                                      {equipmentIcons[eq] || <AlertTriangle className="h-3.5 w-3.5" />}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right">{eq}</TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                              <Users className="h-3 w-3" />
+                              <span>Capacity: {room.capacity}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div 
+                      className="overflow-x-auto flex-1" 
+                      id="timeline-content"
+                      onScroll={(e) => {
+                        const headerContainer = document.getElementById('header-scroll-container');
+                        if (headerContainer) {
+                          headerContainer.scrollLeft = e.currentTarget.scrollLeft;
+                        }
+                        
+                        const roomColumn = document.getElementById('room-column');
+                        if (roomColumn) {
+                          roomColumn.scrollTop = e.currentTarget.scrollTop;
+                        }
+                      }}
+                    >
+                      <div className="min-w-max">
+                        <TooltipProvider>
+                          {filteredRooms.map((room) => (
+                            <div 
+                              key={room.id} 
+                              className="border-b last:border-b-0 h-[100px]"
+                            >
+                              <div className="hidden">{room.name}</div>
+                              
+                              <div className="flex h-full">
                                 {timeSlots.map((time, index) => {
                                   const isAvailable = isTimeSlotAvailable(room.id, time);
                                   const isSoonBooked = isTimeSlotSoonBooked(room.id, time);
@@ -635,14 +656,14 @@ const TimelineView = ({ rooms, bookings, onSelectTimeSlot }: TimelineViewProps) 
                                     </Tooltip>
                                   );
                                 })}
-                              </TooltipProvider>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </TooltipProvider>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </CardContent>
