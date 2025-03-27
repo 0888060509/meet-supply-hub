@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -33,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User, RoleId } from "@/lib/api";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -74,6 +76,8 @@ export const EditUserModal = ({
   onSubmit,
   errors = {}
 }: EditUserModalProps) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -163,6 +167,12 @@ export const EditUserModal = ({
   const handleSubmit = async (values: FormValues) => {
     await onSubmit(values);
     setHasChanges(false);
+    // Clear URL query parameters
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('edit');
+    navigate(`?${params.toString()}`, { replace: true });
+    // Close the modal
+    onOpenChange(false);
   };
 
   return (
@@ -171,6 +181,9 @@ export const EditUserModal = ({
         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>

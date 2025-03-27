@@ -254,8 +254,8 @@ const UserManagement = () => {
 
         setUsers(prev => [...prev, response.data]);
         setIsAddModalOpen(false);
-        toast({
-          title: "Success",
+    toast({
+      title: "Success",
           description: "New user has been created"
         });
       }
@@ -288,8 +288,8 @@ const UserManagement = () => {
         setIsEditModalOpen(false);
         await fetchUsers();
         
-        toast({
-          title: "Success",
+    toast({
+      title: "Success",
           description: "User information has been updated"
         });
       }
@@ -338,7 +338,7 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast({
+    toast({
         title: 'Error',
         description: 'Failed to delete user',
         variant: 'destructive'
@@ -436,36 +436,36 @@ const UserManagement = () => {
             onAddClick={() => setIsAddModalOpen(true)}
           >
             <div className="flex items-center gap-2">
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value={RoleId.Admin}>{getRoleName(RoleId.Admin)}</SelectItem>
                   <SelectItem value={RoleId.Employee}>{getRoleName(RoleId.Employee)}</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+            </SelectContent>
+          </Select>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
           </ManagementToolbar>
 
           {users.length > 0 ? (
-            <>
-              <div className="border rounded-md shadow-sm overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
+        <>
+          <div className="border rounded-md shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
                       <TableHead 
                         className="font-medium text-gray-600" 
                         onClick={() => handleSort('username')}
@@ -502,9 +502,9 @@ const UserManagement = () => {
                       <TableHead className="font-medium text-gray-600">Role</TableHead>
                       <TableHead className="font-medium text-gray-600">Status</TableHead>
                       <TableHead className="text-right font-medium text-gray-600">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                     {filteredUsers.map((user) => (
                       user && (
                         <TableRow key={user.id} className="hover:bg-gray-50 border-b">
@@ -512,8 +512,8 @@ const UserManagement = () => {
                             <button
                               onClick={() => handleOpenProfile(user)}
                               className="text-gray-900 hover:underline font-medium"
-                            >
-                              {user.username}
+                    >
+                      {user.username}
                             </button>
                           </TableCell>
                           <TableCell>
@@ -526,8 +526,8 @@ const UserManagement = () => {
                             >
                               {user.email}
                             </a>
-                          </TableCell>
-                          <TableCell>
+                    </TableCell>
+                    <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {user.roles.map((roleId) => (
                                 <Badge 
@@ -536,54 +536,54 @@ const UserManagement = () => {
                                   className={roleId === RoleId.Admin ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}
                                 >
                                   {getRoleName(roleId)}
-                                </Badge>
+                      </Badge>
                               ))}
                             </div>
-                          </TableCell>
-                          <TableCell>
+                    </TableCell>
+                    <TableCell>
                             <div className="flex items-center gap-2">
                               <div className={`h-2 w-2 rounded-full ${
                                 user.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                              }`} />
+                        }`} />
                               <span className="text-gray-700">{user.status === 'active' ? 'Active' : 'Inactive'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                             <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
                                 onClick={() => {
                                   setSelectedUser(user);
                                   handleEditUser(user);
                                 }}
-                              >
-                                Edit
-                              </Button>
-                              <Button
+                        >
+                          Edit
+                        </Button>
+                        <Button 
                                 variant={user.status === 'active' ? 'destructive' : 'outline'}
-                                size="sm"
+                          size="sm"
                                 onClick={() => {
                                   setUserToToggle(user);
                                   setShowStatusDialog(true);
                                 }}
-                              >
+                        >
                                 {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                       )
-                    ))}
-                  </TableBody>
-                </Table>
+                ))}
+              </TableBody>
+            </Table>
               </div>
-            </>
-          ) : (
+        </>
+      ) : (
             <TableEmptyState
               message={
                 search || roleFilter !== "all" || statusFilter !== "all"
-                  ? "No matching users found. Try adjusting your search or filters."
+              ? "No matching users found. Try adjusting your search or filters."
                   : "No users found. Click '+ Add User' to create one."
               }
               actionLabel="Add User"
@@ -593,7 +593,7 @@ const UserManagement = () => {
           )}
 
           {/* Add User Modal */}
-          <AddUserModal
+      <AddUserModal 
             open={isAddModalOpen}
             onOpenChange={setIsAddModalOpen}
             onSubmit={handleAddUser}
@@ -601,8 +601,8 @@ const UserManagement = () => {
           />
 
           {/* Edit User Modal */}
-          {selectedUser && (
-            <EditUserModal
+      {selectedUser && (
+          <EditUserModal 
               open={isEditModalOpen}
               onOpenChange={(open) => {
                 if (!open) {
@@ -617,16 +617,16 @@ const UserManagement = () => {
 
           {/* User Profile Modal */}
           {selectedUser && (
-            <UserProfileModal
+          <UserProfileModal 
               open={isProfileModalOpen}
               onOpenChange={(open) => {
                 if (!open) {
                   handleCloseProfile();
                 }
               }}
-              user={selectedUser}
+            user={selectedUser}
               onEdit={() => {
-                setIsProfileModalOpen(false);
+              setIsProfileModalOpen(false);
                 handleEditUser(selectedUser);
               }}
             />
