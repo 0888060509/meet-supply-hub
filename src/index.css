@@ -109,3 +109,48 @@
 .animate-slide-in {
   animation: slideInFromBottom 0.2s ease-out;
 }
+
+/* Custom scrollbar for better scrolling experience */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Timeline specific styles */
+.timeline-container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}
+
+@media (max-width: 768px) {
+  .timeline-container {
+    grid-template-columns: 150px 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .timeline-container {
+    grid-template-columns: 120px 1fr;
+  }
+}
+
+/* Room header styles */
+.room-header {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
