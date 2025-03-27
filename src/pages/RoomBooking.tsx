@@ -6,6 +6,7 @@ import RoomCard from "@/components/RoomCard";
 import BookingCalendar, { BookingFormData } from "@/components/BookingCalendar";
 import BookingConfirmation from "@/components/BookingConfirmation";
 import TimelineView from "@/components/TimelineView";
+import RoomsDisplay from "@/components/RoomsDisplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -148,6 +149,15 @@ const RoomBooking = () => {
                 bookings={bookings} 
                 onSelectTimeSlot={handleTimeSlotSelect} 
               />
+              
+              {/* All Building Rooms Section */}
+              <div className="my-8">
+                <h2 className="text-xl font-semibold mb-4">Building Rooms</h2>
+                <p className="text-muted-foreground mb-6">
+                  Browse all available rooms in the building
+                </p>
+                <RoomsDisplay rooms={rooms} onBookNow={handleBookNow} />
+              </div>
               
               {/* Enhanced Room List with Details Link */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 mb-4">
