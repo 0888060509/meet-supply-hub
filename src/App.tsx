@@ -79,7 +79,7 @@ const App: React.FC = () => {
                     
                     {/* Settings routes */}
                     <Route 
-                      path="/settings" 
+                      path="/admin" 
                       element={
                         <ProtectedRoute requireAdmin>
                           <SettingsPage />
@@ -87,7 +87,7 @@ const App: React.FC = () => {
                       } 
                     />
                     <Route 
-                      path="/settings/users" 
+                      path="/admin/users" 
                       element={
                         <ProtectedRoute requireAdmin>
                           <UserManagement />
@@ -125,14 +125,6 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute requireAdmin>
                           <AdminAllBookings />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin/users" 
-                      element={
-                        <ProtectedRoute requireAdmin>
-                          <UserManagement />
                         </ProtectedRoute>
                       } 
                     />

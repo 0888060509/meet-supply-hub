@@ -55,7 +55,7 @@ const Navbar = () => {
   if (isAuthenticated && user?.roles.includes(RoleId.Admin)) {
     navLinks.push({ 
       name: "Settings", 
-      path: "/settings", 
+      path: "/admin", 
       icon: <Settings className="w-4 h-4 mr-2" /> 
     });
   }
